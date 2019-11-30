@@ -24,6 +24,7 @@ import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ImageAnalyzer implements ImageAnalysis.Analyzer {
@@ -57,6 +58,7 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
         if (imageProxy == null || imageProxy.getImage() == null) {
             return;
         }
+
         Image mediaImage = imageProxy.getImage();
         int rotation = degreesToFirebaseRotation(degrees);
         FirebaseVisionImage image =
@@ -67,22 +69,16 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
         Task<List<FirebaseVisionFace>> result =
                 detector.detectInImage(image)
                         .addOnSuccessListener(
-                                faces -> { // Face is detected in image. Extracting contours of eyes and mouth
+                                faces -> { // Face(s) is detected in the image. Extracting contours of eyes and mouth
                                     for (FirebaseVisionFace face: faces) {
-                                        List<FirebaseVisionPoint> leftEyeContour =
-                                                face.getContour(FirebaseVisionFaceContour.LEFT_EYE).getPoints();
-                                        List<FirebaseVisionPoint> rightEyeContour =
-                                                face.getContour(FirebaseVisionFaceContour.RIGHT_EYE).getPoints();
-                                        List<FirebaseVisionPoint> upperLipContour =
-                                                face.getContour(FirebaseVisionFaceContour.UPPER_LIP_TOP).getPoints();
-                                        List<FirebaseVisionPoint> lowerLipContour =
-                                                face.getContour(FirebaseVisionFaceContour.LOWER_LIP_BOTTOM).getPoints();
+                                        FaceContours faceContours = new FaceContours(face);
+                                        //TODO: Check if any of the face contours indicate drooping
                                         }
                                     }
                                 )
                         .addOnFailureListener(
                                 e -> {
-                                    //TODO: Task failed with an exception
+                                    // do nothing
                                 });
     }
 
