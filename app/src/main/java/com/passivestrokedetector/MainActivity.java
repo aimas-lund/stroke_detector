@@ -2,9 +2,7 @@ package com.passivestrokedetector;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.Manifest;
 
-import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 
 
@@ -17,11 +15,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        FirebaseVisionFaceDetectorOptions highAccuracyOpts =
+        FirebaseVisionFaceDetectorOptions highSpeedOptions =
                 new FirebaseVisionFaceDetectorOptions.Builder()
                         .setPerformanceMode(FirebaseVisionFaceDetectorOptions.FAST)
-                        .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_LANDMARKS)
+                        .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
                         .build();
+
+        ImageAnalyzer imageAnalyzer = new ImageAnalyzer(this);
 
     }
 }

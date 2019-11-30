@@ -15,13 +15,23 @@ import androidx.annotation.RequiresApi;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
 
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata;
+import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
+import com.google.firebase.ml.vision.face.FirebaseVisionFace;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ImageAnalyzer implements ImageAnalysis.Analyzer {
 
-    private Context mainContext;
     private static String TAG = "Image Analyzer";
+
+    private Context mainContext;
 
     ImageAnalyzer(Context context) {
         mainContext = context;
@@ -48,11 +58,28 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
         if (imageProxy == null || imageProxy.getImage() == null) {
             return;
         }
+
         Image mediaImage = imageProxy.getImage();
         int rotation = degreesToFirebaseRotation(degrees);
         FirebaseVisionImage image =
                 FirebaseVisionImage.fromMediaImage(mediaImage, rotation);
-        //TODO: Pass image to an ML Kit Vision API
+        FirebaseVisionFaceDetector detector = FirebaseVision.getInstance()
+                .getVisionFaceDetector();
+
+        Task<List<FirebaseVisionFace>> result =
+                detector.detectInImage(image)
+                        .addOnSuccessListener(
+                                faces -> { // Face(s) is detected in the image. Extracting contours of eyes and mouth
+                                    for (FirebaseVisionFace face: faces) {
+                                        FaceContours faceContours = new FaceContours(face);
+                                        //TODO: Check if any of the face contours indicate drooping
+                                        }
+                                    }
+                                )
+                        .addOnFailureListener(
+                                e -> {
+                                    // do nothing
+                                });
     }
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
@@ -68,21 +95,22 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
      * orientation.
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private int getRotationCompensation(String cameraId, Activity activity, Context context)
+    private int getRotationCompensation(String cameraId, Activity activity)
             throws CameraAccessException {
-        // Get the device's current rotation relative to its "native" orientation.
-        // Then, from the ORIENTATIONS table, look up the angle the image must be
-        // rotated to compensate for the device's rotation.
         int deviceRotation = activity.getWindowManager().getDefaultDisplay().getRotation();
         int rotationCompensation = ORIENTATIONS.get(deviceRotation);
+        int sensorOrientation = 0;
 
-        // On most devices, the sensor orientation is 90 degrees, but for some
-        // devices it is 270 degrees. For devices with a sensor orientation of
-        // 270, rotate the image an additional 180 ((270 + 270) % 360) degrees.
         CameraManager cameraManager = (CameraManager) mainContext.getSystemService(Context.CAMERA_SERVICE);
-        int sensorOrientation = cameraManager
-                .getCameraCharacteristics(cameraId)
-                .get(CameraCharacteristics.SENSOR_ORIENTATION);
+
+        try {
+            sensorOrientation = cameraManager
+                    .getCameraCharacteristics(cameraId)
+                    .get(CameraCharacteristics.SENSOR_ORIENTATION);
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+
         rotationCompensation = (rotationCompensation + sensorOrientation + 270) % 360;
 
         // Return the corresponding FirebaseVisionImageMetadata rotation value.
