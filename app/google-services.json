@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1092424787982",
+    "firebase_url": "https://stroke-detector-cf8df.firebaseio.com",
+    "project_id": "stroke-detector-cf8df",
+    "storage_bucket": "stroke-detector-cf8df.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1092424787982:android:d363d81c776893c304745f",
+        "android_client_info": {
+          "package_name": "com.passivestrokedetector"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1092424787982-kjvs16b2e8l1geqje3l2e4s8hsncpvn3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVe4S9ecSNv4WKzKG_BqFu9SEn0uBE-pM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1092424787982-kjvs16b2e8l1geqje3l2e4s8hsncpvn3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
