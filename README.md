@@ -6,3 +6,4 @@ Useful links:
 - https://firebase.google.com/docs/ml-kit/android/detect-faces
 - https://android.googlesource.com/platform/frameworks/support/+/refs/heads/androidx-master-dev/camera/integration-tests/coretestapp/src/main/java/androidx/camera/integration/core/CameraXActivity.java
 - https://codelabs.developers.google.com/codelabs/camerax-getting-started/#4 (only for kotlin)
+- https://developers.google.com/vision/android/detect-faces-tutorial
