@@ -9,3 +9,4 @@ Useful links:
 - https://developers.google.com/vision/android/detect-faces-tutorial
 - https://developer.android.com/guide/components/services.html (Background stuff)
 - https://examples.javacodegeeks.com/android/core/service/android-service-example/
+- https://developer.android.com/training/camera/cameradirect
