@@ -5,9 +5,11 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.Vibrator;
 import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
@@ -34,8 +36,9 @@ public class ForegroundService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         startForeground(intent);
 
-        return START_NOT_STICKY;
-//        return super.onStartCommand(intent, flags, startId);
+//        return START_NOT_STICKY;
+//        sendNotification("IMMEDIATE ACTION REQUIRED", "Stroke has possibly been detected");
+        return super.onStartCommand(intent, flags, startId);
     }
 
     private void createNotificationChannel() {
@@ -65,5 +68,22 @@ public class ForegroundService extends Service {
                 .build();
 
         startForeground(1, notification);
+    }
+
+    private void sendNotification(String subject, String body) {
+        NotificationManager manager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        Notification notify = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle(subject)
+                .setContentText(body)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .build();
+        notify.flags |= Notification.FLAG_AUTO_CANCEL;
+        manager.notify(0, notify);
+
+        // Get instance of Vibrator from current Context
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+        // Vibrate for 300 milliseconds
+        v.vibrate(1000);
     }
 }
