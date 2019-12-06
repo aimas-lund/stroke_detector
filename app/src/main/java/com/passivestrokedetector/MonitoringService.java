@@ -154,6 +154,27 @@ public class MonitoringService extends ForegroundService {
         return null;
     }
 
+    protected CaptureRequest createCaptureRequest() {
+        try {
+            CaptureRequest.Builder builder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+            builder.addTarget(imageReader.getSurface());
+            return builder.build();
+        } catch (CameraAccessException e) {
+            Log.e(TAG, Objects.requireNonNull(e.getMessage()));
+            return null;
+        }
+    }
+
+    public void actOnReadyCameraDevice()
+    {
+        try {
+            imageReader.getSurface();
+            cameraDevice.createCaptureSession(Arrays.asList(imageReader.getSurface()), mStateCallback, mBackgroundHandler);
+        } catch (CameraAccessException e){
+            Log.e(TAG, e.getMessage());
+        }
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand flags " + flags + " startId " + startId);
@@ -166,16 +187,6 @@ public class MonitoringService extends ForegroundService {
         Log.d(TAG,"onCreate service");
         startBackgroundThread();
         super.onCreate();
-    }
-
-    public void actOnReadyCameraDevice()
-    {
-        try {
-            imageReader.getSurface();
-            cameraDevice.createCaptureSession(Arrays.asList(imageReader.getSurface()), mStateCallback, mBackgroundHandler);
-        } catch (CameraAccessException e){
-            Log.e(TAG, e.getMessage());
-        }
     }
 
     @Override
@@ -193,17 +204,6 @@ public class MonitoringService extends ForegroundService {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
-    }
-
-    protected CaptureRequest createCaptureRequest() {
-        try {
-            CaptureRequest.Builder builder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
-            builder.addTarget(imageReader.getSurface());
-            return builder.build();
-        } catch (CameraAccessException e) {
-            Log.e(TAG, Objects.requireNonNull(e.getMessage()));
-            return null;
-        }
     }
 
     /*
