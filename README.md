@@ -9,3 +9,6 @@ Useful links:
 - https://developers.google.com/vision/android/detect-faces-tutorial
 - https://developer.android.com/guide/components/services.html (Background stuff)
 - https://examples.javacodegeeks.com/android/core/service/android-service-example/
+- https://inducesmile.com/android/android-camera2-api-example-tutorial/
+- https://android.jlelse.eu/the-least-you-can-do-with-camera2-api-2971c8c81b8b
+- https://www.sisik.eu/blog/android/media/camera2-from-service
