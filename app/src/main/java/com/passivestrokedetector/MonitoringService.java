@@ -31,8 +31,8 @@ import java.util.Objects;
 @SuppressLint("Registered")
 public class MonitoringService extends ForegroundService {
 
-    protected static final int CAMERA_CALIBRATION_DELAY = 500;
-    protected int IMAGE_CAPTURE_PAUSE = 2000;
+    protected static final int CAMERA_CALIBRATION_DELAY = 500;  // calibration delay to give proper picture brightness
+    protected int IMAGE_CAPTURE_PAUSE = 2000;                   // delay after each successful picture extracted
     protected static final String TAG = "Camera2 Service";
     protected static final int CAMERA_CHOICE = CameraCharacteristics.LENS_FACING_FRONT;
     protected static long cameraCaptureStartTime;
@@ -43,6 +43,13 @@ public class MonitoringService extends ForegroundService {
     private HandlerThread mBackgroundThread;
 
     protected CameraDevice.StateCallback cameraStateCallback = new CameraDevice.StateCallback() {
+
+        /*
+        When the StateCallback is opened, the cameraDevice is referred to the global variable.
+        Given that the imageReader is not always quite fully instantiated when this method is called,
+        we make the tread sleep for a little while.
+        Then, the cameraDevice should start extracting images.
+         */
         @Override
         public void onOpened(@NonNull CameraDevice camera) {
             Log.d(TAG, "CameraDevice.StateCallback onOpened");
@@ -91,6 +98,11 @@ public class MonitoringService extends ForegroundService {
     };
 
     protected ImageReader.OnImageAvailableListener onImageAvailableListener = new ImageReader.OnImageAvailableListener() {
+        /*
+        This function is called when an image is available from the imageAvailableListener.
+        The image will be converted into a bitmap and fed into the contour algorithm.
+        For each successful picture, the thread will be put to sleep, specified by IMAGE_CAPTURE_PAUSE.
+         */
         @Override
         public void onImageAvailable(ImageReader reader) {
             Log.d(TAG, "onImageAvailable");
@@ -122,6 +134,11 @@ public class MonitoringService extends ForegroundService {
         }
     };
 
+    /*
+    Camera setup:
+    Detects a front-facing camera on the device and opens it.
+    An ImageReader is instantiated to create images of 480x640 resolution.
+     */
     public void prepareCamera() {
         CameraManager manager = (CameraManager) getSystemService(CAMERA_SERVICE);
         try {
@@ -165,16 +182,22 @@ public class MonitoringService extends ForegroundService {
         }
     }
 
+    /*
+    When the CameraDevice class is ready, a CaptureSession should be started
+     */
     public void actOnReadyCameraDevice()
     {
         try {
             imageReader.getSurface();
             cameraDevice.createCaptureSession(Arrays.asList(imageReader.getSurface()), mStateCallback, mBackgroundHandler);
         } catch (CameraAccessException e){
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, Objects.requireNonNull(e.getMessage()));
         }
     }
 
+    /*
+    When the Service is in start, the camera should be prepared.
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand flags " + flags + " startId " + startId);
@@ -182,6 +205,10 @@ public class MonitoringService extends ForegroundService {
         return super.onStartCommand(intent, flags, startId);
     }
 
+    /*
+    When the service is created, it should immediately create a separate background thread to handle the
+    image capturing and for image analysis.
+     */
     @Override
     public void onCreate() {
         Log.d(TAG,"onCreate service");
@@ -189,6 +216,9 @@ public class MonitoringService extends ForegroundService {
         super.onCreate();
     }
 
+    /*
+    When the service has ended, it should terminate the background thread.
+     */
     @Override
     public void onDestroy() {
         try {
