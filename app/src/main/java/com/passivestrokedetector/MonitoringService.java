@@ -18,7 +18,6 @@ import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.provider.MediaStore;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -136,7 +135,7 @@ public class MonitoringService extends ForegroundService {
             imageReader.setOnImageAvailableListener(onImageAvailableListener, mBackgroundHandler);
             Log.d(TAG, "imageReader created");
         } catch (CameraAccessException e){
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, Objects.requireNonNull(e.getMessage()));
         }
     }
 
@@ -185,7 +184,7 @@ public class MonitoringService extends ForegroundService {
             captureSession.abortCaptures();
             stopBackgroundThread();
         } catch (CameraAccessException e){
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, Objects.requireNonNull(e.getMessage()));
         }
         captureSession.close();
     }
@@ -202,7 +201,7 @@ public class MonitoringService extends ForegroundService {
             builder.addTarget(imageReader.getSurface());
             return builder.build();
         } catch (CameraAccessException e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, Objects.requireNonNull(e.getMessage()));
             return null;
         }
     }
@@ -234,8 +233,7 @@ public class MonitoringService extends ForegroundService {
         ByteBuffer buffer = img.getPlanes()[0].getBuffer();
         byte[] bytes = new byte[buffer.remaining()];
         buffer.get(bytes);
-        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.length,null);
 
-        return bitmap;
+        return BitmapFactory.decodeByteArray(bytes,0,bytes.length,null);
     }
 }
