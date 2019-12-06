@@ -4,6 +4,8 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -22,11 +24,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
 
 @SuppressLint("Registered")
-public class Camera2Service extends ForegroundService {
+public class MonitoringService extends ForegroundService {
 
     protected static final int CAMERA_CALIBRATION_DELAY = 500;
     protected int IMAGE_CAPTURE_PAUSE = 2000;
@@ -67,7 +70,7 @@ public class Camera2Service extends ForegroundService {
 
         @Override
         public void onReady(CameraCaptureSession session) {
-            Camera2Service.this.captureSession = session;
+            MonitoringService.this.captureSession = session;
             try {
                 session.setRepeatingRequest(createCaptureRequest(), null, mBackgroundHandler);
                 cameraCaptureStartTime = System.currentTimeMillis();
@@ -94,10 +97,12 @@ public class Camera2Service extends ForegroundService {
             Image img = reader.acquireLatestImage();
             if (img != null) {
                     if (System.currentTimeMillis () > cameraCaptureStartTime + CAMERA_CALIBRATION_DELAY) {
-                        Log.d(TAG,"Image saved");
-                        //TODO: Do an image request
+                        Log.d(TAG,"Image received");
+                        Bitmap bitmap = imageToBitmap(img);             // Transform image object into bitmap
 
-                    try {                                           // Wait to take another picture
+                        //TODO: do some analysis on the image
+
+                        try {                                           // Wait to take another picture
                             Thread.sleep(IMAGE_CAPTURE_PAUSE);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
@@ -192,6 +197,12 @@ public class Camera2Service extends ForegroundService {
         }
     }
 
+    /*
+    =====================================
+    AUXILIARY FUNCTIONS
+    =====================================
+     */
+
     private void startBackgroundThread() {
         mBackgroundThread = new HandlerThread("camera_background_thread");
         mBackgroundThread.start();
@@ -207,5 +218,14 @@ public class Camera2Service extends ForegroundService {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private Bitmap imageToBitmap(Image img) {
+        ByteBuffer buffer = img.getPlanes()[0].getBuffer();
+        byte[] bytes = new byte[buffer.remaining()];
+        buffer.get(bytes);
+        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.length,null);
+
+        return bitmap;
     }
 }

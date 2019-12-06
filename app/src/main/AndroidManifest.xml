@@ -20,7 +20,7 @@
             android:enabled="true"
             android:exported="true" />
         <service
-            android:name=".Camera2Service"
+            android:name=".MonitoringService"
             android:enabled="true"
             android:exported="true"/>
 

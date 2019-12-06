@@ -2,11 +2,11 @@ package com.passivestrokedetector;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.camera.camera2.impl.Camera2CaptureRequestBuilder;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -41,7 +41,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_CAMERA_PERMISSION = 2;
 
-    private TextureView textureView;
     private ImageView imageView;
     private HandlerThread mBackgroundThread;
     private Handler mBackgroundHandler;
@@ -64,7 +63,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Get images in low res and in ImageFormat.NV21
         checkCameraPermission();
 
-        ImageAnalyzer imageAnalyzer = new ImageAnalyzer(this);
 
         FirebaseVisionFaceDetectorOptions highSpeedOptions =
                 new FirebaseVisionFaceDetectorOptions.Builder()
@@ -75,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Button startBtn = findViewById(R.id.buttonStartService);
         Button stopBtn = findViewById(R.id.buttonStopService);
         Button takePhoto = findViewById(R.id.buttonTakePhoto);
-        textureView = findViewById(R.id.textureView);
+        imageView = findViewById(R.id.imageView);
 
         startBtn.setOnClickListener(this);
         stopBtn.setOnClickListener(this);
@@ -131,14 +129,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void startCamera2Service() {
-        Intent serviceIntent = new Intent(this, Camera2Service.class);
+        Intent serviceIntent = new Intent(this, MonitoringService.class);
         serviceIntent.putExtra("inputExtra", "Foreground Stroke Detector in Android");
 
         ContextCompat.startForegroundService(this, serviceIntent);
     }
 
     public void stopCamera2Service() {
-        Intent serviceIntent = new Intent(this,  Camera2Service.class);
+        Intent serviceIntent = new Intent(this,  MonitoringService.class);
         stopService(serviceIntent);
     }
 
