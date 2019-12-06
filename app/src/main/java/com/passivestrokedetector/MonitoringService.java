@@ -18,6 +18,7 @@ import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -99,6 +100,15 @@ public class MonitoringService extends ForegroundService {
                     if (System.currentTimeMillis () > cameraCaptureStartTime + CAMERA_CALIBRATION_DELAY) {
                         Log.d(TAG,"Image received");
                         Bitmap bitmap = imageToBitmap(img);             // Transform image object into bitmap
+
+                        /*
+                        MediaStore.Images.Media.insertImage(
+                                getContentResolver(),
+                                bitmap,
+                                "Test",
+                                "This is a test"
+                        );
+                         */
 
                         //TODO: do some analysis on the image
 

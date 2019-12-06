@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Get images in low res and in ImageFormat.NV21
         checkCameraPermission();
-
+        checkStoreagePermission();
 
         FirebaseVisionFaceDetectorOptions highSpeedOptions =
                 new FirebaseVisionFaceDetectorOptions.Builder()
@@ -188,6 +188,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.CAMERA},
                     REQUEST_CAMERA_PERMISSION);
+        }
+    }
+
+    private void checkStoreagePermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+                PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    3);
         }
     }
 
