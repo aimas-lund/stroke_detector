@@ -29,6 +29,7 @@ import java.util.Objects;
 public class Camera2Service extends ForegroundService {
 
     protected static final int CAMERA_CALIBRATION_DELAY = 500;
+    protected int IMAGE_CAPTURE_PAUSE = 2000;
     protected static final String TAG = "Camera2 Service";
     protected static final int CAMERA_CHOICE = CameraCharacteristics.LENS_FACING_FRONT;
     protected static long cameraCaptureStartTime;
@@ -95,6 +96,12 @@ public class Camera2Service extends ForegroundService {
                     if (System.currentTimeMillis () > cameraCaptureStartTime + CAMERA_CALIBRATION_DELAY) {
                         Log.d(TAG,"Image saved");
                         //TODO: Do an image request
+
+                    try {                                           // Wait to take another picture
+                            Thread.sleep(IMAGE_CAPTURE_PAUSE);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 img.close();
             }
