@@ -2,7 +2,6 @@ package com.passivestrokedetector;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
@@ -22,9 +21,9 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 @SuppressLint("Registered")
 public class Camera2Service extends ForegroundService {
@@ -34,7 +33,7 @@ public class Camera2Service extends ForegroundService {
     protected static final int CAMERA_CHOICE = CameraCharacteristics.LENS_FACING_FRONT;
     protected static long cameraCaptureStartTime;
     protected CameraDevice cameraDevice;
-    protected CameraCaptureSession session;
+    protected CameraCaptureSession captureSession;
     protected ImageReader imageReader;
     private Handler mBackgroundHandler;
     private HandlerThread mBackgroundThread;
@@ -44,6 +43,11 @@ public class Camera2Service extends ForegroundService {
         public void onOpened(@NonNull CameraDevice camera) {
             Log.d(TAG, "CameraDevice.StateCallback onOpened");
             cameraDevice = camera;
+            try {                                   // Wait for the image reader to be instantiated
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             actOnReadyCameraDevice();
         }
 
@@ -58,16 +62,16 @@ public class Camera2Service extends ForegroundService {
         }
     };
 
-    protected CameraCaptureSession.StateCallback sessionStateCallback = new CameraCaptureSession.StateCallback() {
+    protected CameraCaptureSession.StateCallback mStateCallback = new CameraCaptureSession.StateCallback() {
 
         @Override
         public void onReady(CameraCaptureSession session) {
-            Camera2Service.this.session = session;
+            Camera2Service.this.captureSession = session;
             try {
-                session.setRepeatingRequest(createCaptureRequest(), null, null);
-                cameraCaptureStartTime = System.currentTimeMillis ();
+                session.setRepeatingRequest(createCaptureRequest(), null, mBackgroundHandler);
+                cameraCaptureStartTime = System.currentTimeMillis();
             } catch (CameraAccessException e) {
-                Log.e(TAG, e.getMessage());
+                Log.e(TAG, Objects.requireNonNull(e.getMessage()));
             }
         }
 
@@ -90,23 +94,24 @@ public class Camera2Service extends ForegroundService {
             if (img != null) {
                     if (System.currentTimeMillis () > cameraCaptureStartTime + CAMERA_CALIBRATION_DELAY) {
                         Log.d(TAG,"Image saved");
+                        //TODO: Do an image request
                     }
                 img.close();
             }
         }
     };
 
-    public void readyCamera() {
+    public void prepareCamera() {
         CameraManager manager = (CameraManager) getSystemService(CAMERA_SERVICE);
         try {
-            String pickedCamera = getCamera(manager);
+            String cameraID = getCamera(manager);
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                 Log.d(TAG, "No Camera Permission");
                 return;
             }
-            manager.openCamera(pickedCamera, cameraStateCallback, null);
-            imageReader = ImageReader.newInstance(1920, 1088, ImageFormat.JPEG, 1);
-            imageReader.setOnImageAvailableListener(onImageAvailableListener, null);
+            manager.openCamera(cameraID, cameraStateCallback, mBackgroundHandler);
+            imageReader = ImageReader.newInstance(480, 640, ImageFormat.JPEG, 2);
+            imageReader.setOnImageAvailableListener(onImageAvailableListener, mBackgroundHandler);
             Log.d(TAG, "imageReader created");
         } catch (CameraAccessException e){
             Log.e(TAG, e.getMessage());
@@ -131,22 +136,22 @@ public class Camera2Service extends ForegroundService {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand flags " + flags + " startId " + startId);
-
-        readyCamera();
-
+        prepareCamera();
         return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
     public void onCreate() {
         Log.d(TAG,"onCreate service");
+        startBackgroundThread();
         super.onCreate();
     }
 
     public void actOnReadyCameraDevice()
     {
         try {
-            cameraDevice.createCaptureSession(Arrays.asList(imageReader.getSurface()), sessionStateCallback, null);
+            imageReader.getSurface();
+            cameraDevice.createCaptureSession(Arrays.asList(imageReader.getSurface()), mStateCallback, mBackgroundHandler);
         } catch (CameraAccessException e){
             Log.e(TAG, e.getMessage());
         }
@@ -155,11 +160,12 @@ public class Camera2Service extends ForegroundService {
     @Override
     public void onDestroy() {
         try {
-            session.abortCaptures();
+            captureSession.abortCaptures();
+            stopBackgroundThread();
         } catch (CameraAccessException e){
             Log.e(TAG, e.getMessage());
         }
-        session.close();
+        captureSession.close();
     }
 
     @Nullable
