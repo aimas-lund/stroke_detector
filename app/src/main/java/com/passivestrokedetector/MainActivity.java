@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Get images in low res and in ImageFormat.NV21
+        // Check for permissions
         checkCameraPermission();
         checkStoreagePermission();
 
@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
                         .build();
 
+        // Initiate interactive features on frontend
         Button startBtn = findViewById(R.id.buttonStartService);
         Button stopBtn = findViewById(R.id.buttonStopService);
         Button takePhoto = findViewById(R.id.buttonTakePhoto);
