@@ -9,15 +9,28 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.ml.vision.FirebaseVision;
+import com.google.firebase.ml.vision.common.FirebaseVisionImage;
+import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
+import com.google.firebase.ml.vision.face.FirebaseVisionFace;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -79,6 +92,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     //TODO: train model
                     Toast.makeText(this, "Model trained successfully", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model trained successfully");
+                    loopPhotosThroughDirs(loopPhotosThroughDirs(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString() + "/Camera/");
+);
                 } catch (Exception e) {
                     Toast.makeText(this, "Model could not be trained", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model could not be trained");
@@ -120,12 +135,80 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         stopService(serviceIntent);
     }
 
+    public void loopPhotosThroughDirs(String dirsPath) throws IOException {
+        try {
+            File folder = new File(dirsPath);
+            folder.mkdirs();
+            File[] allFiles = folder.listFiles((dir, name) -> (name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png")));
+            if (allFiles != null) {
+                for (File file : allFiles) {
+//                    Uri uri = Uri.fromFile(file);
+//                    FirebaseVisionImage image = FirebaseVisionImage.fromFilePath(this, uri);
+                    Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
+                    FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(getResizedBitmap(bitmap, 640, 480));
+                    train(image);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Bitmap getResizedBitmap(Bitmap bm, int newHeight, int newWidth) {
+        int width = bm.getWidth();
+        int height = bm.getHeight();
+        float scaleWidth = ((float) newWidth) / width;
+        float scaleHeight = ((float) newHeight) / height;
+
+        // create a matrix for the manipulation
+        Matrix matrix = new Matrix();
+
+        // resize the bit map
+        matrix.postScale(scaleWidth, scaleHeight);
+
+        // recreate the new Bitmap
+        return Bitmap.createBitmap(bm, 0, 0, width, height, matrix, false);
+    }
+
+    private void train(FirebaseVisionImage image) {
+        FirebaseVisionFaceDetectorOptions options =
+                new FirebaseVisionFaceDetectorOptions.Builder()
+                        .setClassificationMode(FirebaseVisionFaceDetectorOptions.ACCURATE)
+                        .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_LANDMARKS)
+                        .setClassificationMode(FirebaseVisionFaceDetectorOptions.ALL_CLASSIFICATIONS)
+                        .setMinFaceSize(0.15f)
+                        .enableTracking()
+                        .build();
+
+        FirebaseVisionFaceDetector detector = FirebaseVision.getInstance().getVisionFaceDetector(options);
+        Task<List<FirebaseVisionFace>> result =
+                detector.detectInImage(image)
+                        .addOnSuccessListener(
+                                faces -> {
+                                    for (FirebaseVisionFace face : faces) {
+//                                        getContourPoints(face, FirebaseVisionFaceContour.LOWER_LIP_BOTTOM);
+//                                        getContourPoints(face, FirebaseVisionFaceContour.LOWER_LIP_TOP);
+//                                        getContourPoints(face, FirebaseVisionFaceContour.UPPER_LIP_BOTTOM);
+//                                        getContourPoints(face, FirebaseVisionFaceContour.UPPER_LIP_TOP);
+                                        ContourFeatureExtractor extractor = new ContourFeatureExtractor(face);
+                                        List<Double> list = extractor.extractAll();
+
+                                        // Do some training on this list
+                                    }
+                                })
+                        .addOnFailureListener(
+                                e -> {
+                                    // Task failed with an exception
+                                    Log.e("Erorr", Objects.requireNonNull(e.getMessage()));
+                                });
+    }
 
     /*
     =====================================
     AUXILIARY FUNCTIONS
     =====================================
      */
+
 
     private void checkCameraPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
