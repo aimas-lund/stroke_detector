@@ -1,5 +1,6 @@
 package com.passivestrokedetector;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -9,15 +10,34 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Rect;
+import android.media.Image;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.ml.vision.FirebaseVision;
+import com.google.firebase.ml.vision.common.FirebaseVisionImage;
+import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
+import com.google.firebase.ml.vision.face.FirebaseVisionFace;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceLandmark;
 
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -46,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Initiate interactive features on frontend
         Button startBtn = findViewById(R.id.buttonStartService);
         Button stopBtn = findViewById(R.id.buttonStopService);
-        Button takePhoto = findViewById(R.id.buttonTakePhoto);
+        Button takePhoto = findViewById(R.id.buttonPhoto);
         imageView = findViewById(R.id.imageView);
 
         startBtn.setOnClickListener(this);
@@ -70,9 +90,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 stopCamera2Service();
                 break;
             }
-            case R.id.buttonTakePhoto: {
-                Toast.makeText(this, "Photo captured", Toast.LENGTH_SHORT).show();
-                Log.d(TAG, "Took Image");
+            case R.id.buttonPhoto: {
+//                Toast.makeText(this, "Photo captured", Toast.LENGTH_SHORT).show();
+                try {
+                    loopPhotosThroughDirs(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString() + "/Camera/");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
         }
@@ -99,7 +123,62 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         stopService(serviceIntent);
     }
 
+    public void loopPhotosThroughDirs(String dirsPath) throws IOException {
+        try {
+            File folder = new File(dirsPath);
+            Log.e("Name", dirsPath);
+            folder.mkdirs();
+            File[] allFiles = folder.listFiles(new FilenameFilter() {
+                public boolean accept(File dir, String name) {
+                    return (name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png"));
+                }
+            });
+            Log.e("Size", String.valueOf(allFiles.length));
+            for (File file : allFiles) {
+                Uri uri = Uri.fromFile(file);
+                FirebaseVisionImage image = FirebaseVisionImage.fromFilePath(this, uri);
+//            Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
+//            FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmap);
+                test(image);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
+    private void test(FirebaseVisionImage image) {
+        FirebaseVisionFaceDetectorOptions options =
+                new FirebaseVisionFaceDetectorOptions.Builder()
+                        .setClassificationMode(FirebaseVisionFaceDetectorOptions.ACCURATE)
+                        .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_LANDMARKS)
+                        .setClassificationMode(FirebaseVisionFaceDetectorOptions.ALL_CLASSIFICATIONS)
+                        .setMinFaceSize(0.15f)
+                        .enableTracking()
+                        .build();
+
+        FirebaseVisionFaceDetector detector = FirebaseVision.getInstance().getVisionFaceDetector(options);
+
+        Task<List<FirebaseVisionFace>> result =
+                detector.detectInImage(image)
+                        .addOnSuccessListener(
+                                faces -> {
+                                    for (FirebaseVisionFace face : faces) {
+                                        getContourPoints(face, FirebaseVisionFaceContour.LOWER_LIP_BOTTOM);
+                                        getContourPoints(face, FirebaseVisionFaceContour.LOWER_LIP_TOP);
+                                        getContourPoints(face, FirebaseVisionFaceContour.UPPER_LIP_BOTTOM);
+                                        getContourPoints(face, FirebaseVisionFaceContour.UPPER_LIP_TOP);                                        }
+                                })
+                        .addOnFailureListener(
+                                e -> {
+                                    // Task failed with an exception
+                                    Log.e("Erorr", Objects.requireNonNull(e.getMessage()));
+                                });
+    }
+
+    private void getContourPoints(FirebaseVisionFace face, int facialFeature) {
+        FirebaseVisionFaceContour contour = face.getContour(facialFeature);
+        List<FirebaseVisionPoint> pointList = contour.getPoints();
+    }
     /*
     =====================================
     AUXILIARY FUNCTIONS
