@@ -61,12 +61,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch(v.getId()) {
             case R.id.buttonStartService: {
                 Toast.makeText(this, "Service has started", Toast.LENGTH_SHORT).show();
-                startCamera2Service();
+                startMonitoringService();
                 break;
             }
             case R.id.buttonStopService: {
                 Toast.makeText(this, "Service has ended", Toast.LENGTH_SHORT).show();
-                stopCamera2Service();
+                stopMonitoringService();
                 break;
             }
             case R.id.buttonTakePhoto: {
@@ -86,14 +86,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void startCamera2Service() {
+    private void startMonitoringService() {
         Intent serviceIntent = new Intent(this, MonitoringService.class);
         serviceIntent.putExtra("inputExtra", "Foreground Stroke Detector in Android");
 
         ContextCompat.startForegroundService(this, serviceIntent);
     }
 
-    public void stopCamera2Service() {
+    public void stopMonitoringService() {
         Intent serviceIntent = new Intent(this,  MonitoringService.class);
         stopService(serviceIntent);
     }
