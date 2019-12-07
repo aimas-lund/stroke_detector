@@ -16,7 +16,7 @@ public class StrokeClassifier {
 
     private static String TAG = "Stroke Classifier";
 
-    private int numFeatures = 8;
+    private int numFeatures = 9;
     private int numClasses = 2;
     private List<String> listFeatureLeftEye = initList("le");
     private List<String> listFeatureRightEye = initList("re");
