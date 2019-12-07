@@ -15,13 +15,16 @@ import androidx.annotation.RequiresApi;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
 
+import weka.core.Instance;
+import weka.core.Instances;
+
+
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata;
 import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
-import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 
 import java.util.ArrayList;
@@ -95,7 +98,7 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
      * orientation.
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private int getRotationCompensation(String cameraId, Activity activity)
+    public int getRotationCompensation(String cameraId, Activity activity)
             throws CameraAccessException {
         int deviceRotation = activity.getWindowManager().getDefaultDisplay().getRotation();
         int rotationCompensation = ORIENTATIONS.get(deviceRotation);
@@ -134,4 +137,15 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
         }
         return result;
     }
+
+    private float linearAnalysis(FirebaseVisionPoint point,
+                                 FirebaseVisionPoint refPoint,
+                                 double threshold) {
+
+
+
+
+        return 0.0f;
+    }
+
 }
