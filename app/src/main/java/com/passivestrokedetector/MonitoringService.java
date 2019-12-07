@@ -2,11 +2,14 @@ package com.passivestrokedetector;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -18,6 +21,7 @@ import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -27,6 +31,8 @@ import androidx.core.app.ActivityCompat;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
+
+
 
 @SuppressLint("Registered")
 public class MonitoringService extends ForegroundService {
@@ -41,6 +47,8 @@ public class MonitoringService extends ForegroundService {
     protected ImageReader imageReader;
     private Handler mBackgroundHandler;
     private HandlerThread mBackgroundThread;
+
+    private String cameraID;
 
     protected CameraDevice.StateCallback cameraStateCallback = new CameraDevice.StateCallback() {
 
@@ -112,14 +120,31 @@ public class MonitoringService extends ForegroundService {
                         Log.d(TAG,"Image received");
                         Bitmap bitmap = imageToBitmap(img);             // Transform image object into bitmap
 
-                        /*
+//                        float degrees = 270;//rotation degree
+//                        Matrix matrix = new Matrix();
+//                        matrix.setRotate(degrees);
+//                        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+
+                        Context mainContext = getApplicationContext();
+                        ImageAnalyzer analyzer = new ImageAnalyzer(mainContext);
+
+                        Activity activity = (Activity) mainContext;
+                        try {
+                            int degrees = analyzer.getRotationCompensation(cameraID, activity);
+                            Matrix matrix = new Matrix();
+                            matrix.setRotate(degrees);
+                            bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+
+                        } catch (CameraAccessException e) {
+                            e.printStackTrace();
+                        }
+
                         MediaStore.Images.Media.insertImage(
                                 getContentResolver(),
                                 bitmap,
                                 "Test",
                                 "This is a test"
                         );
-                         */
 
                         //TODO: do some analysis on the image
 
@@ -142,7 +167,7 @@ public class MonitoringService extends ForegroundService {
     public void prepareCamera() {
         CameraManager manager = (CameraManager) getSystemService(CAMERA_SERVICE);
         try {
-            String cameraID = getCamera(manager);
+            cameraID = getCamera(manager);
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                 Log.d(TAG, "No Camera Permission");
                 return;

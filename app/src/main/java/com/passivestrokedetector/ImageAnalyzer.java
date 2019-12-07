@@ -95,7 +95,7 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
      * orientation.
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private int getRotationCompensation(String cameraId, Activity activity)
+    public int getRotationCompensation(String cameraId, Activity activity)
             throws CameraAccessException {
         int deviceRotation = activity.getWindowManager().getDefaultDisplay().getRotation();
         int rotationCompensation = ORIENTATIONS.get(deviceRotation);
