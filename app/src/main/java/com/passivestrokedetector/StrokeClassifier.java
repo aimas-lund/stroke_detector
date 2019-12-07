@@ -1,7 +1,13 @@
 package com.passivestrokedetector;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,6 +17,7 @@ import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.Attribute;
 import weka.classifiers.bayes.NaiveBayes;
+import weka.core.converters.ArffSaver;
 
 public class StrokeClassifier {
 
@@ -83,7 +90,7 @@ public class StrokeClassifier {
         instances.add(instance);
     }
 
-    public void train() throws Exception {
+    public void train(Instances data) throws Exception {
         classifier.buildClassifier(instances);
         Log.d(TAG, "Model trained");
     }
@@ -94,6 +101,46 @@ public class StrokeClassifier {
 
         Log.d(TAG, "Prediction made: '$output'");
         return output;
+    }
+
+    public void train() throws Exception {
+        train(instances);
+    }
+    /*
+    Fetches
+     */
+    public void save(String fileName) throws IOException {
+        ArffSaver saver = new ArffSaver();
+
+        saver.setInstances(instances);
+
+        @SuppressLint("SdCardPath")
+        String dirPath = "/sdcard/classifierModel";
+        String filePath = dirPath + fileName;
+
+        File dirFile = new File(dirPath);
+        if (!dirFile.exists()) {
+            dirFile.mkdirs();
+        }
+
+        saver.setFile(new File(filePath));
+        saver.writeBatch();
+    }
+
+    public void load(String fileName) throws Exception {
+        String dirPath = "/sdcard/classifierModel";
+        String filePath = dirPath + fileName;
+
+        if (!new File(filePath).exists()) {
+            throw new FileNotFoundException("$fileName does not exist");
+        }
+
+        BufferedReader reader = new BufferedReader(new FileReader(filePath));
+        Instances data = new Instances(reader);
+
+        if (data.classIndex() == -1)
+            data.setClassIndex(data.numAttributes() - 1);
+        train(data);
     }
 
     /*
