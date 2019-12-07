@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Vibrator;
-import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 

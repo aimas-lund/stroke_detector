@@ -86,7 +86,6 @@ public class MonitoringService extends ForegroundService {
             }
         }
 
-
         @Override
         public void onConfigured(CameraCaptureSession session) {
 

@@ -24,7 +24,7 @@ import java.util.Objects;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static String TAG = "MainActivity";
-    private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int REQUEST_EXTERNAL_STORAGE_PERMISSION = 1;
     private static final int REQUEST_CAMERA_PERMISSION = 2;
 
     private ImageView imageView;
@@ -61,14 +61,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch(v.getId()) {
             case R.id.buttonStartService: {
                 Toast.makeText(this, "Service has started", Toast.LENGTH_SHORT).show();
-                //startService();
-                startCamera2Service();
+                startMonitoringService();
                 break;
             }
             case R.id.buttonStopService: {
                 Toast.makeText(this, "Service has ended", Toast.LENGTH_SHORT).show();
-                //stopService();
-                stopCamera2Service();
+                stopMonitoringService();
                 break;
             }
             case R.id.buttonTakePhoto: {
@@ -88,14 +86,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void startCamera2Service() {
+    private void startMonitoringService() {
         Intent serviceIntent = new Intent(this, MonitoringService.class);
         serviceIntent.putExtra("inputExtra", "Foreground Stroke Detector in Android");
 
         ContextCompat.startForegroundService(this, serviceIntent);
     }
 
-    public void stopCamera2Service() {
+    public void stopMonitoringService() {
         Intent serviceIntent = new Intent(this,  MonitoringService.class);
         stopService(serviceIntent);
     }
@@ -121,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    3);
+                    REQUEST_EXTERNAL_STORAGE_PERMISSION);
         }
     }
 }
