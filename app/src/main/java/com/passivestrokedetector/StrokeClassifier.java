@@ -1,6 +1,5 @@
 package com.passivestrokedetector;
 
-import android.annotation.SuppressLint;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -26,7 +25,6 @@ public class StrokeClassifier {
     private static String TAG = "Stroke Classifier";
 
     private int numFeatures = 9;
-    private int numClasses = 2;
     private List<String> listFeatureLeftEye = initList("le");
     private List<String> listFeatureRightEye = initList("re");
     private List<String> listFeatureLowerLip = initList("ll");
@@ -69,7 +67,12 @@ public class StrokeClassifier {
     Be sure that the lists contains values from all the facial features in the following order:
     left eye, right eye, lower lip, upper lip
      */
-    public Instance createInstance(List<String> attrs, List<Double> values, String className) {
+    public Instance createInstance(List<String> attrs,
+                                   List<Double> values,
+                                   StateOfFace faceState) {
+
+        String className = className(faceState);
+
         Attribute attrClass = instances.attribute("label");
         Instance instance = new Instance((numFeatures + 1)*allFeatures.size());
 
@@ -160,6 +163,15 @@ public class StrokeClassifier {
         }
 
         return list;
+    }
+
+    private String className(StateOfFace className) {
+
+        switch (className) {
+            case NORMAL:    return listClass.get(0);
+            case DROOPING:  return listClass.get(1);
+            default:        return "";
+        }
     }
 
 }
