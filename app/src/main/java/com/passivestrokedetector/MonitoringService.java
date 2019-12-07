@@ -4,8 +4,10 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -23,6 +25,8 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.Display;
+import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -49,6 +53,9 @@ public class MonitoringService extends ForegroundService {
     private HandlerThread mBackgroundThread;
 
     private String cameraID;
+    private static final int ORIENTATION_0 = 0;
+    private static final int ORIENTATION_90 = 3;
+    private static final int ORIENTATION_270 = 1;
 
     protected CameraDevice.StateCallback cameraStateCallback = new CameraDevice.StateCallback() {
 
@@ -120,24 +127,28 @@ public class MonitoringService extends ForegroundService {
                         Log.d(TAG,"Image received");
                         Bitmap bitmap = imageToBitmap(img);             // Transform image object into bitmap
 
-//                        float degrees = 270;//rotation degree
-//                        Matrix matrix = new Matrix();
-//                        matrix.setRotate(degrees);
-//                        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                        float degrees;//rotation degree
+                        Display display = ((WindowManager)
+                                getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+                        int screenOrientation = display.getRotation();
 
-                        Context mainContext = getApplicationContext();
-                        ImageAnalyzer analyzer = new ImageAnalyzer(mainContext);
-
-                        Activity activity = (Activity) mainContext;
-                        try {
-                            int degrees = analyzer.getRotationCompensation(cameraID, activity);
-                            Matrix matrix = new Matrix();
-                            matrix.setRotate(degrees);
-                            bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-
-                        } catch (CameraAccessException e) {
-                            e.printStackTrace();
+                        switch (screenOrientation)
+                        {
+                            default:
+                            case ORIENTATION_0:
+                                degrees = 270;
+                                break;
+                            case ORIENTATION_90: // Landscape right
+                                degrees = 180;
+                                break;
+                            case ORIENTATION_270: // Landscape left
+                                degrees = 360;
+                                break;
                         }
+
+                        Matrix matrix = new Matrix();
+                        matrix.setRotate(degrees);
+                        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
 
                         MediaStore.Images.Media.insertImage(
                                 getContentResolver(),
@@ -290,5 +301,12 @@ public class MonitoringService extends ForegroundService {
         buffer.get(bytes);
 
         return BitmapFactory.decodeByteArray(bytes,0,bytes.length,null);
+    }
+
+    public Activity getActivity(Context context) {
+        if (context == null) return null;
+        if (context instanceof Activity) return (Activity) context;
+        if (context instanceof ContextWrapper) return getActivity(((ContextWrapper)context).getBaseContext());
+        return null;
     }
 }

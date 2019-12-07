@@ -22,7 +22,6 @@ import java.util.Objects;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
-
     private static String TAG = "MainActivity";
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_CAMERA_PERMISSION = 2;
