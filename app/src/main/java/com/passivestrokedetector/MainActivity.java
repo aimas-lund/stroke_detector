@@ -92,8 +92,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     //TODO: train model
                     Toast.makeText(this, "Model trained successfully", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model trained successfully");
-                    loopPhotosThroughDirs(loopPhotosThroughDirs(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString() + "/Camera/");
-);
+                    loopPhotosThroughDirs(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString() + "/Camera/");
                 } catch (Exception e) {
                     Toast.makeText(this, "Model could not be trained", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model could not be trained");
