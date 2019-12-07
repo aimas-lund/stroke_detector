@@ -127,10 +127,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void loopPhotosThroughDirs(String dirsPath) throws IOException {
         try {
             File folder = new File(dirsPath);
-            Log.e("Name", dirsPath);
             folder.mkdirs();
             File[] allFiles = folder.listFiles((dir, name) -> (name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png")));
-//            Log.e("Size", String.valueOf(allFiles.length));
             if (allFiles != null) {
                 for (File file : allFiles) {
 //                    Uri uri = Uri.fromFile(file);
@@ -144,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             e.printStackTrace();
         }
     }
+
     public Bitmap getResizedBitmap(Bitmap bm, int newHeight, int newWidth) {
         int width = bm.getWidth();
         int height = bm.getHeight();
@@ -157,7 +156,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         matrix.postScale(scaleWidth, scaleHeight);
 
         // recreate the new Bitmap
-
         return Bitmap.createBitmap(bm, 0, 0, width, height, matrix, false);
     }
 
