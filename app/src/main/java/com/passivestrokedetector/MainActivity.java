@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.media.Image;
 import android.net.Uri;
@@ -128,22 +129,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             File folder = new File(dirsPath);
             Log.e("Name", dirsPath);
             folder.mkdirs();
-            File[] allFiles = folder.listFiles(new FilenameFilter() {
-                public boolean accept(File dir, String name) {
-                    return (name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png"));
+            File[] allFiles = folder.listFiles((dir, name) -> (name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png")));
+//            Log.e("Size", String.valueOf(allFiles.length));
+            if (allFiles != null) {
+                for (File file : allFiles) {
+//                    Uri uri = Uri.fromFile(file);
+//                    FirebaseVisionImage image = FirebaseVisionImage.fromFilePath(this, uri);
+                    Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
+                    FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(getResizedBitmap(bitmap, 640, 480));
+                    test(image);
                 }
-            });
-            Log.e("Size", String.valueOf(allFiles.length));
-            for (File file : allFiles) {
-                Uri uri = Uri.fromFile(file);
-                FirebaseVisionImage image = FirebaseVisionImage.fromFilePath(this, uri);
-//            Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
-//            FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmap);
-                test(image);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    public Bitmap getResizedBitmap(Bitmap bm, int newHeight, int newWidth) {
+        int width = bm.getWidth();
+        int height = bm.getHeight();
+        float scaleWidth = ((float) newWidth) / width;
+        float scaleHeight = ((float) newHeight) / height;
+
+        // create a matrix for the manipulation
+        Matrix matrix = new Matrix();
+
+        // resize the bit map
+        matrix.postScale(scaleWidth, scaleHeight);
+
+        // recreate the new Bitmap
+
+        return Bitmap.createBitmap(bm, 0, 0, width, height, matrix, false);
     }
 
     private void test(FirebaseVisionImage image) {
@@ -157,7 +172,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .build();
 
         FirebaseVisionFaceDetector detector = FirebaseVision.getInstance().getVisionFaceDetector(options);
-
         Task<List<FirebaseVisionFace>> result =
                 detector.detectInImage(image)
                         .addOnSuccessListener(
