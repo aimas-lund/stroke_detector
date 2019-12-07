@@ -15,10 +15,6 @@ import androidx.annotation.RequiresApi;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
 
-import weka.core.Instance;
-import weka.core.Instances;
-
-
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
@@ -27,7 +23,6 @@ import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ImageAnalyzer implements ImageAnalysis.Analyzer {
@@ -137,15 +132,4 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
         }
         return result;
     }
-
-    private float linearAnalysis(FirebaseVisionPoint point,
-                                 FirebaseVisionPoint refPoint,
-                                 double threshold) {
-
-
-
-
-        return 0.0f;
-    }
-
 }

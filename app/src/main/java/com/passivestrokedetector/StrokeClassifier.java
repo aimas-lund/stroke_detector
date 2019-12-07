@@ -75,7 +75,7 @@ public class StrokeClassifier {
 
     /*
     Takes whatever instance created and adds it in Instances class
-     */
+    */
     public void addToInstances(Instance instance) {
 
         Attribute attrClass = instances.attribute("label");
