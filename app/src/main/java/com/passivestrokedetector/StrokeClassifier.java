@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import android.os.Environment;
+
 import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -99,7 +101,7 @@ public class StrokeClassifier {
         double result = classifier.classifyInstance(instance);
         String output = instances.classAttribute().value((int) result);
 
-        Log.d(TAG, "Prediction made: '$output'");
+        Log.d(TAG, "Prediction made: " + output);
         return output;
     }
 
@@ -114,8 +116,7 @@ public class StrokeClassifier {
 
         saver.setInstances(instances);
 
-        @SuppressLint("SdCardPath")
-        String dirPath = "/sdcard/classifierModel";
+        String dirPath = Environment.getExternalStorageDirectory().getPath();
         String filePath = dirPath + fileName;
 
         File dirFile = new File(dirPath);
@@ -128,11 +129,12 @@ public class StrokeClassifier {
     }
 
     public void load(String fileName) throws Exception {
-        String dirPath = "/sdcard/classifierModel";
+        //String dirPath = "/sdcard/classifierModel";
+        String dirPath = Environment.getExternalStorageDirectory().getPath();
         String filePath = dirPath + fileName;
 
         if (!new File(filePath).exists()) {
-            throw new FileNotFoundException("$fileName does not exist");
+            throw new FileNotFoundException(fileName + " does not exist");
         }
 
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
