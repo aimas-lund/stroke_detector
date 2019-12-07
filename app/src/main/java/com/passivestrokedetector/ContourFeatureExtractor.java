@@ -6,10 +6,8 @@ import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Stream;
 
 /*
 Face extractor calculates the following attributes:
@@ -18,11 +16,6 @@ minX, maxX, sdX, avgX, minY, maxY, sdY, avgY, cSlope
 public class ContourFeatureExtractor {
 
     private FirebaseVisionFace face;
-
-    private List<Double> leftEyeFeatures = new ArrayList<>();
-    private List<Double> rightEyeFeatures = new ArrayList<>();
-    private List<Double> lowerLipFeatures = new ArrayList<>();
-    private List<Double> upperLipFeatures = new ArrayList<>();
 
     ContourFeatureExtractor(FirebaseVisionFace face) {
         this.face = face;
@@ -92,15 +85,14 @@ public class ContourFeatureExtractor {
         int i1 = 0;
         int i2 = 0;
 
-        switch (facialFeature) {
-            case LEFT_EYE:
-                i2 = 8;
-            case RIGHT_EYE:
-                i2 = 8;
-            case LOWER_LIP:
-                i1 = 8;
-            case UPPER_LIP:
-                i2 = 10;
+        if (facialFeature == FacialFeature.LEFT_EYE) {
+            i2 = 8;
+        } else if (facialFeature == FacialFeature.RIGHT_EYE) {
+            i2 = 8;
+        } else if (facialFeature == FacialFeature.LOWER_LIP) {
+            i1 = 8;
+        } else {
+            i2 = 10;
         }
 
         FirebaseVisionPoint point1 = points.get(i1);
@@ -109,7 +101,7 @@ public class ContourFeatureExtractor {
         return (double) (point2.getY()-point1.getY()) / (point2.getX()-point1.getX());
     }
 
-    public <T> List<T> flattenList(List<List<T>> nested) {
+    private <T> List<T> flattenList(List<List<T>> nested) {
         List<T> output = new ArrayList<>();
         nested.forEach(output::addAll);
         return output;

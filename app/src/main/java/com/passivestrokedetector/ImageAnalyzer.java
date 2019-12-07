@@ -68,7 +68,6 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
                         .addOnSuccessListener(
                                 faces -> { // Face(s) is detected in the image. Extracting contours of eyes and mouth
                                     for (FirebaseVisionFace face: faces) {
-                                        FaceContours faceContours = new FaceContours(face);
                                         //TODO: Check if any of the face contours indicate drooping
                                         }
                                     }
