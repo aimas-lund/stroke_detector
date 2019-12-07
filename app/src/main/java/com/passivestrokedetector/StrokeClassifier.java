@@ -1,5 +1,7 @@
 package com.passivestrokedetector;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,6 +12,8 @@ import weka.core.Instances;
 import weka.core.Attribute;
 
 public class StrokeClassifier {
+
+    private static String TAG = "Stroke Classifier";
 
     private int numFeatures = 8;
     private int numClasses = 2;
@@ -62,6 +66,16 @@ public class StrokeClassifier {
         instance.setValue(attrClass, className);
 
         return instance;
+    }
+
+    /*
+    Takes whatever instance created and adds it in Instances class
+     */
+    public void addToInstances(Instance instance) {
+
+        Attribute attrClass = instances.attribute("label");
+        instances.setClass(attrClass);
+        instances.add(instance);
     }
 
     /*
