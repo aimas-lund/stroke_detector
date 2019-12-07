@@ -1,6 +1,5 @@
 package com.passivestrokedetector;
 
-import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 
 import java.util.ArrayList;
