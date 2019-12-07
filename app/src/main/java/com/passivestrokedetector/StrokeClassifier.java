@@ -10,6 +10,7 @@ import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.Attribute;
+import weka.classifiers.bayes.NaiveBayes;
 
 public class StrokeClassifier {
 
@@ -31,6 +32,10 @@ public class StrokeClassifier {
 
     private Instances instances = createEmptyInstances();
 
+    // For training
+    private NaiveBayes classifier = new NaiveBayes();
+
+    // Functions
     private Instances createEmptyInstances() {
         /* Create an empty list of instances */
         FastVector attrs = new FastVector();
@@ -76,6 +81,19 @@ public class StrokeClassifier {
         Attribute attrClass = instances.attribute("label");
         instances.setClass(attrClass);
         instances.add(instance);
+    }
+
+    public void train() throws Exception {
+        classifier.buildClassifier(instances);
+        Log.d(TAG, "Model trained");
+    }
+
+    public String predict(Instance instance) throws Exception {
+        double result = classifier.classifyInstance(instance);
+        String output = instances.classAttribute().value((int) result);
+
+        Log.d(TAG, "Prediction made: '$output'");
+        return output;
     }
 
     /*
