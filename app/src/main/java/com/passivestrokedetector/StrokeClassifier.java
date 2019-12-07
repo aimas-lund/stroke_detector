@@ -112,7 +112,7 @@ public class StrokeClassifier {
         train(instances);
     }
     /*
-    Fetches
+    Fetches classifier model
      */
     public void save(String fileName) throws IOException {
         ArffSaver saver = new ArffSaver();

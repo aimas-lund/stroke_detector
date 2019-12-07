@@ -17,7 +17,7 @@ public class ContourFeatureExtractor {
 
     private FirebaseVisionFace face;
 
-    ContourFeatureExtractor(FirebaseVisionFace face) {
+    public ContourFeatureExtractor(FirebaseVisionFace face) {
         this.face = face;
     }
 
