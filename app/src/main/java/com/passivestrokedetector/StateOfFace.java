@@ -1,5 +1,5 @@
 package com.passivestrokedetector;
 
-public enum StateOfFace {
+enum StateOfFace {
     NORMAL, DROOPING
 }

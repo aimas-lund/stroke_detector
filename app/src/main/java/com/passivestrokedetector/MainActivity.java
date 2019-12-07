@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static String TAG = "MainActivity";
     private static final int REQUEST_EXTERNAL_STORAGE_PERMISSION = 1;
     private static final int REQUEST_CAMERA_PERMISSION = 2;
+    private StrokeClassifier classifier;
 
     private ImageView imageView;
 
@@ -44,15 +45,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
                         .build();
 
+        classifier = new StrokeClassifier();
+
         // Initiate interactive features on frontend
         Button startBtn = findViewById(R.id.buttonStartService);
         Button stopBtn = findViewById(R.id.buttonStopService);
-        Button takePhoto = findViewById(R.id.buttonTakePhoto);
+        Button trainModel = findViewById(R.id.buttonTrainModel);
+        Button loadModel = findViewById(R.id.buttonLoadModel);
         imageView = findViewById(R.id.imageView);
 
         startBtn.setOnClickListener(this);
         stopBtn.setOnClickListener(this);
-        takePhoto.setOnClickListener(this);
+        trainModel.setOnClickListener(this);
+        loadModel.setOnClickListener(this);
 
     }
 
@@ -69,11 +74,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 stopMonitoringService();
                 break;
             }
-            case R.id.buttonTakePhoto: {
-                Toast.makeText(this, "Photo captured", Toast.LENGTH_SHORT).show();
-                Log.d(TAG, "Took Image");
+            case R.id.buttonTrainModel: {
+                try {
+                    //TODO: train model
+                    Toast.makeText(this, "Model trained successfully", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Model trained successfully");
+                } catch (Exception e) {
+                    Toast.makeText(this, "Model could not be trained", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Model could not be trained");
+                }
+                break;
             }
-
+            case R.id.buttonLoadModel: {
+                try {
+                    classifier.load("classifierModel.arff");
+                    Toast.makeText(this, "Model loaded successfully", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Model loaded successfully");
+                } catch (Exception e) {
+                    Toast.makeText(this, "Model could not be found", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Model could not be found");
+                }
+                break;
+            }
         }
     }
 
