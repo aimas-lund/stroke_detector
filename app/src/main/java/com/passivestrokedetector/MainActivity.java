@@ -265,24 +265,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Task<List<FirebaseVisionFace>> result = detector.detectInImage(image)
                 .addOnSuccessListener(
                         faces -> {
-                            for (FirebaseVisionFace face : faces) {
-                                extractor.setFace(face);
-                                List<Double> list = extractor.extractAll();
+                            if (faces.size() > 0) {
+                                FirebaseVisionFace face = faces.get(0);
+                                if (face != null) {
+                                    extractor.setFace(face);
+                                    List<Double> list = extractor.extractAll();
 
-                                if (isDrooping) {
-                                    Instance instance = classifier.createInstance(
-                                            classifier.getAllFeaturesFlattened(),
-                                            list,
-                                            StateOfFace.DROOPING
-                                    );
-                                    classifier.addToInstances(instance);
-                                } else {
-                                    Instance instance = classifier.createInstance(
-                                            classifier.getAllFeaturesFlattened(),
-                                            list,
-                                            StateOfFace.NORMAL
-                                    );
-                                    classifier.addToInstances(instance);
+                                    if (isDrooping) {
+                                        Instance instance = classifier.createInstance(
+                                                classifier.getAllFeaturesFlattened(),
+                                                list,
+                                                StateOfFace.DROOPING
+                                        );
+
+                                        classifier.addToInstances(instance);
+                                    } else {
+                                        Instance instance = classifier.createInstance(
+                                                classifier.getAllFeaturesFlattened(),
+                                                list,
+                                                StateOfFace.NORMAL
+                                        );
+                                        classifier.addToInstances(instance);
+                                    }
                                 }
                             }
                         })

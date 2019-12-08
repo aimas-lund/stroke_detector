@@ -185,7 +185,8 @@ public class MonitoringService extends ForegroundService {
                     Task<List<FirebaseVisionFace>> result = detector.detectInImage(image)
                             .addOnSuccessListener(
                                     faces -> {
-                                        for (FirebaseVisionFace face : faces) {
+                                        if (faces.size() > 0) {
+                                            FirebaseVisionFace face = faces.get(0);
                                             if (face != null) {
                                                 extractor.setFace(face);
                                                 List<Double> list = extractor.extractAll();
