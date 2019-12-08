@@ -22,7 +22,9 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
+import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 
@@ -51,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button deleteModelBtn;
     private Boolean buttonsDisabled = false;
 
+    private String filePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString() + "/Camera/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 try {
                     Toast.makeText(this, "Model trained successfully", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model trained successfully");
-                    loopPhotosThroughDirs(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString() + "/Model/");
+                    loopPhotosThroughDirs(filePath);
                 } catch (Exception e) {
                     Toast.makeText(this, "Model could not be trained", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model could not be trained");
@@ -229,7 +232,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .addOnSuccessListener(
                                 faces -> {
                                     for (FirebaseVisionFace face : faces) {
-                                        extractor.setFace(face);
+//                                        FirebaseVisionFaceContour contour = face.getContour(FirebaseVisionFaceContour.LEFT_EYE);
+//                                        List<FirebaseVisionPoint> point = contour.getPoints();
+//                                        contour = face.getContour(FirebaseVisionFaceContour.LOWER_LIP_BOTTOM);
+//                                        extractor.setFace(face);
                                         List<Double> list = extractor.extractAll();
 
                                         /*
