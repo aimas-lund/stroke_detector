@@ -147,6 +147,20 @@ public class StrokeClassifier {
         train(data);
     }
 
+    public void delete(String fileName) {
+
+        if (checkModelAvailable(fileName)) {
+            String dirPath = Environment.getExternalStorageDirectory().getPath();
+            String filePath = dirPath + fileName;
+
+            File file = new File(filePath);
+            file.delete();
+            Log.d(TAG, "Model successfully deleted");
+        } else {
+            Log.d(TAG, "No model with that name available");
+        }
+    }
+
     public Boolean checkModelAvailable(String fileName) {
         String dirPath = Environment.getExternalStorageDirectory().getPath();
         String filePath = dirPath + fileName;
