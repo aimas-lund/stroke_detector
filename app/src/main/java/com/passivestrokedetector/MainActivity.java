@@ -6,6 +6,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -93,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch(v.getId()) {
             case R.id.buttonStartService: {
-                toggleButtons(stopBtn);
+                toggleButtons(this, stopBtn);
                 Toast.makeText(this, "Service has started", Toast.LENGTH_SHORT).show();
                 startMonitoringService();
                 break;
@@ -101,11 +102,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.buttonStopService: {
                 Toast.makeText(this, "Service has ended", Toast.LENGTH_SHORT).show();
                 stopMonitoringService();
-                toggleButtons(stopBtn);
+                toggleButtons(this, stopBtn);
                 break;
             }
             case R.id.buttonTrainModel: {
-                toggleAllButtons();
+                toggleAllButtons(this);
                 try {
                     Toast.makeText(this, "Model trained successfully", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model trained successfully");
@@ -114,11 +115,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Toast.makeText(this, "Model could not be trained", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model could not be trained");
                 }
-                toggleAllButtons();
+                toggleAllButtons(this);
                 break;
             }
             case R.id.buttonLoadModel: {
-                toggleAllButtons();
+                toggleAllButtons(this);
                 try {
                     classifier.load("classifierModel.arff");
                     Toast.makeText(this, "Model loaded successfully", Toast.LENGTH_SHORT).show();
@@ -127,14 +128,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Toast.makeText(this, "Model could not be found", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model could not be found");
                 }
-                toggleAllButtons();
+                toggleAllButtons(this);
                 break;
             }
             case R.id.buttonDeleteModel: {
-                toggleAllButtons();
+                toggleAllButtons(this);
                 classifier.delete("classifierModel.arff");
                 Toast.makeText(this, "Model removed", Toast.LENGTH_SHORT).show();
-                toggleAllButtons();
+                toggleAllButtons(this);
             }
         }
     }
@@ -284,33 +285,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void toggleButtons(Button active) {
+    private void toggleButtons(Context context, Button active) {
         List<Button> buttonArray = Arrays.asList(startBtn, stopBtn, loadModelBtn, trainModelBtn, deleteModelBtn);
 
         if (buttonsDisabled) {
             for (Button b : buttonArray) {
                 b.setEnabled(true);
+                b.setBackgroundColor(ContextCompat.getColor(context, R.color.colorAccent));
             }
         } else {
             for (Button b : buttonArray) {
                 if (b != active) {
                     b.setEnabled(false);
+                    b.setBackgroundColor(ContextCompat.getColor(context, R.color.colorAccentDisabled));
                 }
             }
         }
         buttonsDisabled = !buttonsDisabled;
     }
 
-    private void toggleAllButtons() {
+    private void toggleAllButtons(Context context) {
         List<Button> buttonArray = Arrays.asList(startBtn, stopBtn, loadModelBtn, trainModelBtn, deleteModelBtn);
 
         if (buttonsDisabled) {
             for (Button b : buttonArray) {
                 b.setEnabled(true);
+                b.setBackgroundColor(ContextCompat.getColor(context, R.color.colorAccent));
             }
         } else {
             for (Button b : buttonArray) {
                 b.setEnabled(false);
+                b.setBackgroundColor(ContextCompat.getColor(context, R.color.colorAccentDisabled));
             }
         }
         buttonsDisabled = !buttonsDisabled;
