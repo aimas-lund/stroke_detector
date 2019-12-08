@@ -55,7 +55,7 @@ import weka.core.Instance;
 public class MonitoringService extends ForegroundService {
 
     protected static final int CAMERA_CALIBRATION_DELAY = 500;  // calibration delay to give proper picture brightness
-    protected int IMAGE_CAPTURE_PAUSE = 5000;                   // delay after each successful picture extracted
+    protected int IMAGE_CAPTURE_PAUSE = 7000;                   // delay after each successful picture extracted
     protected static final String TAG = "Camera2 Service";
     protected static final int CAMERA_CHOICE = CameraCharacteristics.LENS_FACING_FRONT;
     protected static long cameraCaptureStartTime;
@@ -186,18 +186,19 @@ public class MonitoringService extends ForegroundService {
                             .addOnSuccessListener(
                                     faces -> {
                                         for (FirebaseVisionFace face : faces) {
-                                            extractor.setFace(face);
-                                            List<Double> list = extractor.extractAll();
+                                            if (face != null) {
+                                                extractor.setFace(face);
+                                                List<Double> list = extractor.extractAll();
 
-                                            Instance instance = classifier.createInstance(classifier.getAllFeaturesFlattened(), list, StateOfFace.NORMAL);
-                                            instance.setDataset(classifier.instances);
-                                            try {
-                                                String output = classifier.predict(instance);
-                                                if (output.equals("Drooping")) {
-                                                    sendNotification("IMMEDIATE ACTION REQUIRED", "Stroke has possibly been detected");
+                                                Instance instance = classifier.createInstance(classifier.getAllFeaturesFlattened(), list, StateOfFace.NORMAL);
+                                                try {
+                                                    String output = classifier.predict(instance);
+                                                    if (output.equals("Drooping")) {
+                                                        sendNotification("IMMEDIATE ACTION REQUIRED", "Stroke has possibly been detected");
+                                                    }
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
                                                 }
-                                            } catch (Exception e) {
-                                                e.printStackTrace();
                                             }
                                         }
                                     })
@@ -297,6 +298,7 @@ public class MonitoringService extends ForegroundService {
         startBackgroundThread();
         try {
             classifier.load("classifierModel.arff");
+            extractor = new ContourFeatureExtractor();
         } catch (Exception e) {
             e.printStackTrace();
             Log.d(classifier.getTAG(), "Failed to load classifier model");

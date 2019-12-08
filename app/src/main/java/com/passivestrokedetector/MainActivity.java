@@ -110,10 +110,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.buttonTrainModel: {
                 toggleAllButtons();
                 try {
+                    doTraining(getNormalImage(), getDroopingImage());
                     Toast.makeText(this, "Model trained successfully", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model trained successfully");
 //                    loopPhotosThroughDirs(filePath);
-                    doTraining(getNormalImage(), getDroopingImage());
                 } catch (Exception e) {
                     Toast.makeText(this, "Model could not be trained", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model could not be trained");

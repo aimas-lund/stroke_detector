@@ -1,8 +1,10 @@
 package com.passivestrokedetector;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -62,6 +64,7 @@ public class StrokeClassifier {
         Instances instances = new Instances("modelInstances", attrs, 10000);
         Attribute attr = instances.attribute("label");
         instances.setClass(attr);
+
         return instances;
     }
 
@@ -83,6 +86,17 @@ public class StrokeClassifier {
             instance.setValue(attrInstance, values.get(j));
         }
         instance.setValue(attrClass, className);
+
+
+        /*
+        if (faceState == StateOfFace.NORMAL) {
+            instance.setClassValue(listClass.get(0));
+        } else {
+            instance.setClassValue(listClass.get(1));
+        }
+         */
+        instance.setDataset(instances);
+
         return instance;
     }
 
@@ -90,9 +104,8 @@ public class StrokeClassifier {
     Takes whatever instance created and adds it in Instances class
     */
     public void addToInstances(Instance instance) {
-
-        Attribute attrClass = instances.attribute("label");
-        instances.setClass(attrClass);
+        Attribute classAttr = instances.attribute("label");
+        instances.setClass(classAttr);
         instances.add(instance);
     }
 
@@ -117,8 +130,8 @@ public class StrokeClassifier {
 
         saver.setInstances(instances);
 
-//        String dirPath = Environment.getExternalStorageDirectory().getPath();
-        String dirPath = "/sdcard/weka";
+        @SuppressLint("SdCardPath")
+        String dirPath = "/sdcard/weka/";
         String filePath = dirPath + fileName;
 
         File dirFile = new File(dirPath);
@@ -132,7 +145,8 @@ public class StrokeClassifier {
 
     public void load(String fileName) throws Exception {
         //String dirPath = "/sdcard/classifierModel";
-        String dirPath = Environment.getExternalStorageDirectory().getPath();
+        @SuppressLint("SdCardPath")
+        String dirPath = "/sdcard/weka/";
         String filePath = dirPath + fileName;
 
         if (!new File(filePath).exists()) {
@@ -162,7 +176,8 @@ public class StrokeClassifier {
     }
 
     public Boolean checkModelAvailable(String fileName) {
-        String dirPath = Environment.getExternalStorageDirectory().getPath();
+        @SuppressLint("SdCardPath")
+        String dirPath = "/sdcard/weka/";
         String filePath = dirPath + fileName;
 
         return new File(filePath).exists();
@@ -171,6 +186,7 @@ public class StrokeClassifier {
     private <T> List<T> flattenList(List<List<T>> nested) {
         List<T> output = new ArrayList<>();
         nested.forEach(output::addAll);
+
         return output;
     }
 
@@ -212,4 +228,7 @@ public class StrokeClassifier {
         }
     }
 
+    public Instances getInstances() {
+        return instances;
+    }
 }
