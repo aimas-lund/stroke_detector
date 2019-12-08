@@ -222,8 +222,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 new FirebaseVisionFaceDetectorOptions.Builder()
                         .setClassificationMode(FirebaseVisionFaceDetectorOptions.ACCURATE)
                         .setContourMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
-                        .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_LANDMARKS)
-                        .setClassificationMode(FirebaseVisionFaceDetectorOptions.ALL_CLASSIFICATIONS)
+                        .setLandmarkMode(FirebaseVisionFaceDetectorOptions.NO_LANDMARKS)
+                        .setClassificationMode(FirebaseVisionFaceDetectorOptions.NO_CLASSIFICATIONS)
                         .setMinFaceSize(0.15f)
                         .enableTracking()
                         .build();
