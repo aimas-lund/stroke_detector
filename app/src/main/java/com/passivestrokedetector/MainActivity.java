@@ -22,16 +22,15 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
-import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
-import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+
+import weka.core.Instance;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -40,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int REQUEST_EXTERNAL_STORAGE_PERMISSION = 1;
     private static final int REQUEST_CAMERA_PERMISSION = 2;
     private StrokeClassifier classifier;
-
+    private ContourFeatureExtractor extractor;
     private ImageView imageView;
 
     @Override
@@ -59,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .build();
 
         classifier = new StrokeClassifier();
+        extractor = new ContourFeatureExtractor();
 
         // Initiate interactive features on frontend
         Button startBtn = findViewById(R.id.buttonStartService);
@@ -89,7 +89,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             case R.id.buttonTrainModel: {
                 try {
-                    //TODO: train model
                     Toast.makeText(this, "Model trained successfully", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model trained successfully");
                     loopPhotosThroughDirs(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString() + "/Camera/");
@@ -123,34 +122,55 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void startMonitoringService() {
-        Intent serviceIntent = new Intent(this, MonitoringService.class);
-        serviceIntent.putExtra("inputExtra", "Foreground Stroke Detector in Android");
 
-        ContextCompat.startForegroundService(this, serviceIntent);
+        Boolean classifierAvailable = classifier.checkModelAvailable("classifierModel.arff");
+
+        if (classifierAvailable) {
+            Intent serviceIntent = new Intent(this, MonitoringService.class);
+            serviceIntent.putExtra("inputExtra", "Foreground Stroke Detector in Android");
+
+            ContextCompat.startForegroundService(this, serviceIntent);
+        } else {
+            Toast.makeText(this, "No trained model available", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "No trained model available");
+        }
+
     }
 
-    public void stopMonitoringService() {
+    private void stopMonitoringService() {
         Intent serviceIntent = new Intent(this,  MonitoringService.class);
         stopService(serviceIntent);
     }
 
-    public void loopPhotosThroughDirs(String dirsPath) throws IOException {
+    public void loopPhotosThroughDirs(String dirsPath) throws Exception {
         try {
             File folder = new File(dirsPath);
             folder.mkdirs();
-            File[] allFiles = folder.listFiles((dir, name) -> (name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png")));
+            File[] allFiles = folder.listFiles((dir, name) -> (
+                    name.endsWith(".jpg") ||
+                    name.endsWith(".jpeg") ||
+                    name.endsWith(".png")));
             if (allFiles != null) {
                 for (File file : allFiles) {
 //                    Uri uri = Uri.fromFile(file);
 //                    FirebaseVisionImage image = FirebaseVisionImage.fromFilePath(this, uri);
                     Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
-                    FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(getResizedBitmap(bitmap, 640, 480));
-                    train(image);
+                    FirebaseVisionImage image = FirebaseVisionImage.
+                            fromBitmap(getResizedBitmap(bitmap, 640, 480));
+                    buildClassifier(image);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        try {
+            classifier.train();
+            classifier.save("classifierModel.arff");
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d(classifier.getTAG(), "Unable to train model");
+        }
+
     }
 
     public Bitmap getResizedBitmap(Bitmap bm, int newHeight, int newWidth) {
@@ -169,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return Bitmap.createBitmap(bm, 0, 0, width, height, matrix, false);
     }
 
-    private void train(FirebaseVisionImage image) {
+    private void buildClassifier(FirebaseVisionImage image) {
         FirebaseVisionFaceDetectorOptions options =
                 new FirebaseVisionFaceDetectorOptions.Builder()
                         .setClassificationMode(FirebaseVisionFaceDetectorOptions.ACCURATE)
@@ -185,20 +205,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .addOnSuccessListener(
                                 faces -> {
                                     for (FirebaseVisionFace face : faces) {
-//                                        getContourPoints(face, FirebaseVisionFaceContour.LOWER_LIP_BOTTOM);
-//                                        getContourPoints(face, FirebaseVisionFaceContour.LOWER_LIP_TOP);
-//                                        getContourPoints(face, FirebaseVisionFaceContour.UPPER_LIP_BOTTOM);
-//                                        getContourPoints(face, FirebaseVisionFaceContour.UPPER_LIP_TOP);
-                                        ContourFeatureExtractor extractor = new ContourFeatureExtractor(face);
+                                        extractor.setFace(face);
                                         List<Double> list = extractor.extractAll();
 
-                                        // Do some training on this list
+                                        /*
+                                        TODO: Need to find a way to label images for training
+                                        -- Perhaps make separate folders for each class
+                                         */
+
+                                        Instance instance = classifier.createInstance(
+                                                classifier.getAllFeaturesFlattened(),
+                                                list,
+                                                StateOfFace.NORMAL
+                                        );
+                                        classifier.addToInstances(instance);
                                     }
                                 })
                         .addOnFailureListener(
                                 e -> {
                                     // Task failed with an exception
-                                    Log.e("Erorr", Objects.requireNonNull(e.getMessage()));
+                                    Log.e("Error", Objects.requireNonNull(e.getMessage()));
                                 });
     }
 
