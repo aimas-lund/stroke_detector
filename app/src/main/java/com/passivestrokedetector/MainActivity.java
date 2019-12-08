@@ -220,6 +220,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         FirebaseVisionFaceDetectorOptions options =
                 new FirebaseVisionFaceDetectorOptions.Builder()
                         .setClassificationMode(FirebaseVisionFaceDetectorOptions.ACCURATE)
+                        .setContourMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
                         .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_LANDMARKS)
                         .setClassificationMode(FirebaseVisionFaceDetectorOptions.ALL_CLASSIFICATIONS)
                         .setMinFaceSize(0.15f)
@@ -235,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                                        FirebaseVisionFaceContour contour = face.getContour(FirebaseVisionFaceContour.LEFT_EYE);
 //                                        List<FirebaseVisionPoint> point = contour.getPoints();
 //                                        contour = face.getContour(FirebaseVisionFaceContour.LOWER_LIP_BOTTOM);
-//                                        extractor.setFace(face);
+                                        extractor.setFace(face);
                                         List<Double> list = extractor.extractAll();
 
                                         /*
