@@ -73,7 +73,7 @@ public class StrokeClassifier {
         String className = className(faceState);
 
         Attribute attrClass = instances.attribute("label");
-        Instance instance = new Instance((numFeatures + 1)*allFeatures.size());
+        Instance instance = new Instance(attrs.size() + 1);
 
         for (int j = 0; j < attrs.size(); j++) {
             Attribute attrInstance = instances.attribute(attrs.get(j));

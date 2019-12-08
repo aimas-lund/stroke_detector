@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        switch(v.getId()) {
+        switch (v.getId()) {
             case R.id.buttonStartService: {
                 toggleButtons(stopBtn);
                 Toast.makeText(this, "Service has started", Toast.LENGTH_SHORT).show();
@@ -111,7 +111,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 try {
                     Toast.makeText(this, "Model trained successfully", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model trained successfully");
-                    loopPhotosThroughDirs(filePath);
+//                    loopPhotosThroughDirs(filePath);
+                    doTraining(getNormalImage(), getDroopingImage());
                 } catch (Exception e) {
                     Toast.makeText(this, "Model could not be trained", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model could not be trained");
@@ -167,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void stopMonitoringService() {
-        Intent serviceIntent = new Intent(this,  MonitoringService.class);
+        Intent serviceIntent = new Intent(this, MonitoringService.class);
         stopService(serviceIntent);
     }
 
@@ -177,16 +178,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             folder.mkdirs();
             File[] allFiles = folder.listFiles((dir, name) -> (
                     name.endsWith(".jpg") ||
-                    name.endsWith(".jpeg") ||
-                    name.endsWith(".png")));
+                            name.endsWith(".jpeg") ||
+                            name.endsWith(".png")));
             if (allFiles != null) {
                 for (File file : allFiles) {
-//                    Uri uri = Uri.fromFile(file);
-//                    FirebaseVisionImage image = FirebaseVisionImage.fromFilePath(this, uri);
                     Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
                     FirebaseVisionImage image = FirebaseVisionImage.
                             fromBitmap(getResizedBitmap(bitmap, 640, 480));
-                    buildClassifier(image);
+                    buildClassifier(image, true);
                 }
             }
         } catch (Exception e) {
@@ -218,51 +217,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return Bitmap.createBitmap(bm, 0, 0, width, height, matrix, false);
     }
 
-    private void buildClassifier(FirebaseVisionImage image) {
-        FirebaseVisionFaceDetectorOptions options =
-                new FirebaseVisionFaceDetectorOptions.Builder()
-                        .setClassificationMode(FirebaseVisionFaceDetectorOptions.ACCURATE)
-                        .setContourMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
-                        .setLandmarkMode(FirebaseVisionFaceDetectorOptions.NO_LANDMARKS)
-                        .setClassificationMode(FirebaseVisionFaceDetectorOptions.NO_CLASSIFICATIONS)
-                        .setMinFaceSize(0.15f)
-                        .enableTracking()
-                        .build();
-
-        FirebaseVisionFaceDetector detector = FirebaseVision.getInstance().getVisionFaceDetector(options);
-        Task<List<FirebaseVisionFace>> result =
-                detector.detectInImage(image)
-                        .addOnSuccessListener(
-                                faces -> {
-                                    for (FirebaseVisionFace face : faces) {
-//                                        FirebaseVisionFaceContour contour = face.getContour(FirebaseVisionFaceContour.LEFT_EYE);
-//                                        List<FirebaseVisionPoint> point = contour.getPoints();
-//                                        contour = face.getContour(FirebaseVisionFaceContour.LOWER_LIP_BOTTOM);
-                                        extractor.setFace(face);
-                                        List<Double> list = extractor.extractAll();
-
-                                        /*
-                                        TODO: Need to find a way to label images for training
-                                        -- Perhaps make separate folders for each class
-                                         */
-
-                                        Instance instance = classifier.createInstance(
-                                                classifier.getAllFeaturesFlattened(),
-                                                list,
-                                                StateOfFace.NORMAL
-                                        );
-                                        classifier.addToInstances(instance);
-                                    }
-                                })
-                        .addOnFailureListener(
-                                e -> {
-                                    // Task failed with an exception
-                                    Log.e("Error", Objects.requireNonNull(e.getMessage()));
-                                });
-    }
-
     /**
      * This is used for manual images
+     *
      * @param normal
      * @param drooping
      */
@@ -304,42 +261,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .build();
 
         FirebaseVisionFaceDetector detector = FirebaseVision.getInstance().getVisionFaceDetector(options);
-        Task<List<FirebaseVisionFace>> result =
-                detector.detectInImage(image)
-                        .addOnSuccessListener(
-                                faces -> {
-                                    for (FirebaseVisionFace face : faces) {
-                                        extractor.setFace(face);
-                                        List<Double> list = extractor.extractAll();
+        Task<List<FirebaseVisionFace>> result = detector.detectInImage(image)
+                .addOnSuccessListener(
+                        faces -> {
+                            for (FirebaseVisionFace face : faces) {
+                                extractor.setFace(face);
+                                List<Double> list = extractor.extractAll();
 
-                                        if (isDrooping) {
-                                            Instance instance = classifier.createInstance(
-                                                    classifier.getAllFeaturesFlattened(),
-                                                    list,
-                                                    StateOfFace.DROOPING
-                                            );
-                                            classifier.addToInstances(instance);
-                                        } else {
-                                            Instance instance = classifier.createInstance(
-                                                    classifier.getAllFeaturesFlattened(),
-                                                    list,
-                                                    StateOfFace.NORMAL
-                                            );
-                                            classifier.addToInstances(instance);
-                                        }
-                                    }
-                                })
-                        .addOnFailureListener(
-                                e -> {
-                                    // Task failed with an exception
-                                    Log.e("Error", Objects.requireNonNull(e.getMessage()));
-                                });
+                                if (isDrooping) {
+                                    Instance instance = classifier.createInstance(
+                                            classifier.getAllFeaturesFlattened(),
+                                            list,
+                                            StateOfFace.DROOPING
+                                    );
+                                    classifier.addToInstances(instance);
+                                } else {
+                                    Instance instance = classifier.createInstance(
+                                            classifier.getAllFeaturesFlattened(),
+                                            list,
+                                            StateOfFace.NORMAL
+                                    );
+                                    classifier.addToInstances(instance);
+                                }
+                            }
+                        })
+                .addOnFailureListener(
+                        e -> {
+                            // Task failed with an exception
+                            Log.e("Error", Objects.requireNonNull(e.getMessage()));
+                        });
     }
 
-    private void getContourPoints(FirebaseVisionFace face, int facialFeature) {
-        FirebaseVisionFaceContour contour = face.getContour(facialFeature);
-        List<FirebaseVisionPoint> pointList = contour.getPoints();
-    }
     /*
     =====================================
     AUXILIARY FUNCTIONS
