@@ -36,7 +36,7 @@ public class StrokeClassifier {
             listFeatureLowerLip,
             listFeatureUpperLip);
     private List<String> listClass = Arrays.asList("Normal", "Drooping");
-    private Instances instances = createEmptyInstances();
+    public Instances instances = createEmptyInstances();
 
     // For training
     private NaiveBayes classifier = new NaiveBayes();
@@ -59,7 +59,10 @@ public class StrokeClassifier {
         }
         attrs.addElement(new Attribute("label", classes));
 
-        return new Instances("modelInstances", attrs, 10000);
+        Instances instances = new Instances("modelInstances", attrs, 10000);
+        Attribute attr = instances.attribute("label");
+        instances.setClass(attr);
+        return instances;
     }
 
     /*
@@ -80,7 +83,6 @@ public class StrokeClassifier {
             instance.setValue(attrInstance, values.get(j));
         }
         instance.setValue(attrClass, className);
-
         return instance;
     }
 
@@ -115,7 +117,8 @@ public class StrokeClassifier {
 
         saver.setInstances(instances);
 
-        String dirPath = Environment.getExternalStorageDirectory().getPath();
+//        String dirPath = Environment.getExternalStorageDirectory().getPath();
+        String dirPath = "/sdcard/weka";
         String filePath = dirPath + fileName;
 
         File dirFile = new File(dirPath);

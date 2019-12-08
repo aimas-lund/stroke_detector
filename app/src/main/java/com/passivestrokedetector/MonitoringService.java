@@ -181,7 +181,6 @@ public class MonitoringService extends ForegroundService {
 //                        );
                     FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(getResizedBitmap(bitmap, 640, 480));
 
-                    //TODO: do some analysis on the image
                     FirebaseVisionFaceDetector detector = FirebaseVision.getInstance().getVisionFaceDetector(options);
                     Task<List<FirebaseVisionFace>> result = detector.detectInImage(image)
                             .addOnSuccessListener(
@@ -191,6 +190,7 @@ public class MonitoringService extends ForegroundService {
                                             List<Double> list = extractor.extractAll();
 
                                             Instance instance = classifier.createInstance(classifier.getAllFeaturesFlattened(), list, StateOfFace.NORMAL);
+                                            instance.setDataset(classifier.instances);
                                             try {
                                                 String output = classifier.predict(instance);
                                                 if (output.equals("Drooping")) {

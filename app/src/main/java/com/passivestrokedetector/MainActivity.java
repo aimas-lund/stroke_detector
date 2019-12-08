@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import weka.core.Attribute;
 import weka.core.Instance;
 
 
@@ -412,7 +413,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n15));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n16));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n17));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n18));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n18));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n19));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n20));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n21));
@@ -421,11 +422,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n24));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n25));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n26));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n27));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n27));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n28));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n29));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n30));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n31));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n31));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n32));
         return list;
     }
