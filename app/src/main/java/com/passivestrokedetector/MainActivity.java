@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Button stopBtn = findViewById(R.id.buttonStopService);
         Button trainModel = findViewById(R.id.buttonTrainModel);
         Button loadModel = findViewById(R.id.buttonLoadModel);
+        Button deleteModel = findViewById(R.id.buttonDeleteModel);
         imageView = findViewById(R.id.imageView);
 
         startBtn.setOnClickListener(this);
@@ -108,6 +109,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Log.d(TAG, "Model could not be found");
                 }
                 break;
+            }
+            case R.id.buttonDeleteModel: {
+                classifier.delete("classifierModel.arff");
+                Toast.makeText(this, "Model removed", Toast.LENGTH_SHORT).show();
             }
         }
     }
