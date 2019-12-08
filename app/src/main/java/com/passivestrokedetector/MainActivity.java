@@ -27,6 +27,7 @@ import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -41,6 +42,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private StrokeClassifier classifier;
     private ContourFeatureExtractor extractor;
     private ImageView imageView;
+
+    // Buttons
+    private Button startBtn;
+    private Button stopBtn;
+    private Button trainModelBtn;
+    private Button loadModelBtn;
+    private Button deleteModelBtn;
+    private Boolean buttonsDisabled = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,17 +71,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         extractor = new ContourFeatureExtractor();
 
         // Initiate interactive features on frontend
-        Button startBtn = findViewById(R.id.buttonStartService);
-        Button stopBtn = findViewById(R.id.buttonStopService);
-        Button trainModel = findViewById(R.id.buttonTrainModel);
-        Button loadModel = findViewById(R.id.buttonLoadModel);
-        Button deleteModel = findViewById(R.id.buttonDeleteModel);
+        startBtn = findViewById(R.id.buttonStartService);
+        stopBtn = findViewById(R.id.buttonStopService);
+        trainModelBtn = findViewById(R.id.buttonTrainModel);
+        loadModelBtn = findViewById(R.id.buttonLoadModel);
+        deleteModelBtn = findViewById(R.id.buttonDeleteModel);
         imageView = findViewById(R.id.imageView);
 
         startBtn.setOnClickListener(this);
         stopBtn.setOnClickListener(this);
-        trainModel.setOnClickListener(this);
-        loadModel.setOnClickListener(this);
+        trainModelBtn.setOnClickListener(this);
+        loadModelBtn.setOnClickListener(this);
+        deleteModelBtn.setOnClickListener(this);
 
     }
 
@@ -79,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch(v.getId()) {
             case R.id.buttonStartService: {
+                toggleButtons(stopBtn);
                 Toast.makeText(this, "Service has started", Toast.LENGTH_SHORT).show();
                 startMonitoringService();
                 break;
@@ -86,9 +98,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.buttonStopService: {
                 Toast.makeText(this, "Service has ended", Toast.LENGTH_SHORT).show();
                 stopMonitoringService();
+                toggleButtons(stopBtn);
                 break;
             }
             case R.id.buttonTrainModel: {
+                toggleAllButtons();
                 try {
                     Toast.makeText(this, "Model trained successfully", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model trained successfully");
@@ -97,9 +111,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Toast.makeText(this, "Model could not be trained", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model could not be trained");
                 }
+                toggleAllButtons();
                 break;
             }
             case R.id.buttonLoadModel: {
+                toggleAllButtons();
                 try {
                     classifier.load("classifierModel.arff");
                     Toast.makeText(this, "Model loaded successfully", Toast.LENGTH_SHORT).show();
@@ -108,11 +124,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Toast.makeText(this, "Model could not be found", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model could not be found");
                 }
+                toggleAllButtons();
                 break;
             }
             case R.id.buttonDeleteModel: {
+                toggleAllButtons();
                 classifier.delete("classifierModel.arff");
                 Toast.makeText(this, "Model removed", Toast.LENGTH_SHORT).show();
+                toggleAllButtons();
             }
         }
     }
@@ -256,6 +275,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     REQUEST_EXTERNAL_STORAGE_PERMISSION);
         }
+    }
+
+    private void toggleButtons(Button active) {
+        List<Button> buttonArray = Arrays.asList(startBtn, stopBtn, loadModelBtn, trainModelBtn, deleteModelBtn);
+
+        if (buttonsDisabled) {
+            for (Button b : buttonArray) {
+                b.setEnabled(true);
+            }
+        } else {
+            for (Button b : buttonArray) {
+                if (b != active) {
+                    b.setEnabled(false);
+                }
+            }
+        }
+        buttonsDisabled = !buttonsDisabled;
+    }
+
+    private void toggleAllButtons() {
+        List<Button> buttonArray = Arrays.asList(startBtn, stopBtn, loadModelBtn, trainModelBtn, deleteModelBtn);
+
+        if (buttonsDisabled) {
+            for (Button b : buttonArray) {
+                b.setEnabled(true);
+            }
+        } else {
+            for (Button b : buttonArray) {
+                b.setEnabled(false);
+            }
+        }
+        buttonsDisabled = !buttonsDisabled;
     }
 }
 
