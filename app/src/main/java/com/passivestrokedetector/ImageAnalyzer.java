@@ -19,12 +19,9 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata;
-import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
-import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ImageAnalyzer implements ImageAnalysis.Analyzer {
@@ -71,7 +68,6 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
                         .addOnSuccessListener(
                                 faces -> { // Face(s) is detected in the image. Extracting contours of eyes and mouth
                                     for (FirebaseVisionFace face: faces) {
-                                        FaceContours faceContours = new FaceContours(face);
                                         //TODO: Check if any of the face contours indicate drooping
                                         }
                                     }

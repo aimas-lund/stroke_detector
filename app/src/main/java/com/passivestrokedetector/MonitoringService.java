@@ -42,7 +42,7 @@ import java.util.Objects;
 public class MonitoringService extends ForegroundService {
 
     protected static final int CAMERA_CALIBRATION_DELAY = 500;  // calibration delay to give proper picture brightness
-    protected int IMAGE_CAPTURE_PAUSE = 2000;                   // delay after each successful picture extracted
+    protected int IMAGE_CAPTURE_PAUSE = 5000;                   // delay after each successful picture extracted
     protected static final String TAG = "Camera2 Service";
     protected static final int CAMERA_CHOICE = CameraCharacteristics.LENS_FACING_FRONT;
     protected static long cameraCaptureStartTime;
@@ -51,6 +51,7 @@ public class MonitoringService extends ForegroundService {
     protected ImageReader imageReader;
     private Handler mBackgroundHandler;
     private HandlerThread mBackgroundThread;
+    private StrokeClassifier classifier = new StrokeClassifier();
 
     private String cameraID;
     private static final int ORIENTATION_0 = 0;
@@ -100,7 +101,6 @@ public class MonitoringService extends ForegroundService {
                 Log.e(TAG, Objects.requireNonNull(e.getMessage()));
             }
         }
-
 
         @Override
         public void onConfigured(CameraCaptureSession session) {
@@ -249,6 +249,12 @@ public class MonitoringService extends ForegroundService {
     public void onCreate() {
         Log.d(TAG,"onCreate service");
         startBackgroundThread();
+        try {
+            classifier.load("classifierModel.arff");
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d(classifier.getTAG(), "Failed to load classifier model");
+        }
         super.onCreate();
     }
 
