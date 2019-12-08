@@ -94,7 +94,7 @@ public class StrokeClassifier {
         instances.add(instance);
     }
 
-    public void train(Instances data) throws Exception {
+    public void train() throws Exception {
         classifier.buildClassifier(instances);
         Log.d(TAG, "Model trained");
     }
@@ -107,9 +107,6 @@ public class StrokeClassifier {
         return output;
     }
 
-    public void train() throws Exception {
-        train(instances);
-    }
     /*
     Fetches classifier model
      */
@@ -144,7 +141,7 @@ public class StrokeClassifier {
 
         if (data.classIndex() == -1)
             data.setClassIndex(data.numAttributes() - 1);
-        train(data);
+        train();
     }
 
     public void delete(String fileName) {
