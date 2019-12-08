@@ -99,7 +99,7 @@ public class ContourFeatureExtractor {
         FirebaseVisionPoint point1 = points.get(i1);
         FirebaseVisionPoint point2 = points.get(i2);
 
-        return (double) (point2.getY()-point1.getY()) / (point2.getX()-point1.getX());
+        return (double) Math.abs((point2.getY()-point1.getY()) / (point2.getX()-point1.getX()));
     }
 
     private <T> List<T> flattenList(List<List<T>> nested) {
