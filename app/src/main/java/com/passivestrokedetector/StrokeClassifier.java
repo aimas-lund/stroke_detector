@@ -36,7 +36,6 @@ public class StrokeClassifier {
             listFeatureLowerLip,
             listFeatureUpperLip);
     private List<String> listClass = Arrays.asList("Normal", "Drooping");
-
     private Instances instances = createEmptyInstances();
 
     // For training
@@ -67,9 +66,9 @@ public class StrokeClassifier {
     Be sure that the lists contains values from all the facial features in the following order:
     left eye, right eye, lower lip, upper lip
      */
-    public Instance createInstance(List<String> attrs,
-                                   List<Double> values,
-                                   StateOfFace faceState) {
+    Instance createInstance(List<String> attrs,
+                            List<Double> values,
+                            StateOfFace faceState) {
 
         String className = className(faceState);
 
@@ -95,7 +94,7 @@ public class StrokeClassifier {
         instances.add(instance);
     }
 
-    public void train(Instances data) throws Exception {
+    public void train() throws Exception {
         classifier.buildClassifier(instances);
         Log.d(TAG, "Model trained");
     }
@@ -108,9 +107,6 @@ public class StrokeClassifier {
         return output;
     }
 
-    public void train() throws Exception {
-        train(instances);
-    }
     /*
     Fetches classifier model
      */
@@ -145,7 +141,46 @@ public class StrokeClassifier {
 
         if (data.classIndex() == -1)
             data.setClassIndex(data.numAttributes() - 1);
-        train(data);
+        train();
+    }
+
+    public void delete(String fileName) {
+
+        if (checkModelAvailable(fileName)) {
+            String dirPath = Environment.getExternalStorageDirectory().getPath();
+            String filePath = dirPath + fileName;
+
+            File file = new File(filePath);
+            file.delete();
+            Log.d(TAG, "Model successfully deleted");
+        } else {
+            Log.d(TAG, "No model with that name available");
+        }
+    }
+
+    public Boolean checkModelAvailable(String fileName) {
+        String dirPath = Environment.getExternalStorageDirectory().getPath();
+        String filePath = dirPath + fileName;
+
+        return new File(filePath).exists();
+    }
+
+    private <T> List<T> flattenList(List<List<T>> nested) {
+        List<T> output = new ArrayList<>();
+        nested.forEach(output::addAll);
+        return output;
+    }
+
+    public List<List<String>> getAllFeatures() {
+        return allFeatures;
+    }
+
+    public List<String> getAllFeaturesFlattened() {
+        return flattenList(allFeatures);
+    }
+
+    public String getTAG() {
+        return TAG;
     }
 
     /*

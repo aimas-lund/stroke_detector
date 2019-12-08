@@ -17,11 +17,12 @@ public class ContourFeatureExtractor {
 
     private FirebaseVisionFace face;
 
-    public ContourFeatureExtractor(FirebaseVisionFace face) {
+    ContourFeatureExtractor(FirebaseVisionFace face) {
         this.face = face;
     }
+    ContourFeatureExtractor() { this.face = null; }
 
-    public List<Double> extractAll() {
+    List<Double> extractAll() {
         List<Double> leftEyeFeatures = extract(face.getContour(FirebaseVisionFaceContour.LEFT_EYE).getPoints(),
                 FacialFeature.LEFT_EYE);
         List<Double> rightEyeFeatures = extract(face.getContour(FirebaseVisionFaceContour.RIGHT_EYE).getPoints(),
