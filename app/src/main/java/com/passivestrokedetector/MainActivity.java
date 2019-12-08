@@ -1,5 +1,6 @@
 package com.passivestrokedetector;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -11,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -19,15 +21,11 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.ml.vision.FirebaseVision;
-import com.google.firebase.ml.vision.common.FirebaseVisionImage;
-import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceLandmark;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,7 +33,6 @@ import weka.core.Instance;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
-
     private static String TAG = "MainActivity";
     private static final int REQUEST_EXTERNAL_STORAGE_PERMISSION = 1;
     private static final int REQUEST_CAMERA_PERMISSION = 2;
@@ -257,6 +254,46 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 });
     }
 
+        // resize the bit map
+        matrix.postScale(scaleWidth, scaleHeight);
+
+        // recreate the new Bitmap
+        return Bitmap.createBitmap(bm, 0, 0, width, height, matrix, false);
+    }
+
+    private void test(FirebaseVisionImage image) {
+        FirebaseVisionFaceDetectorOptions options =
+                new FirebaseVisionFaceDetectorOptions.Builder()
+                        .setClassificationMode(FirebaseVisionFaceDetectorOptions.ACCURATE)
+                        .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_LANDMARKS)
+                        .setContourMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
+                        .setClassificationMode(FirebaseVisionFaceDetectorOptions.ALL_CLASSIFICATIONS)
+                        .setMinFaceSize(0.15f)
+                        .enableTracking()
+                        .build();
+
+        FirebaseVisionFaceDetector detector = FirebaseVision.getInstance().getVisionFaceDetector(options);
+        Task<List<FirebaseVisionFace>> result =
+                detector.detectInImage(image)
+                        .addOnSuccessListener(
+                                faces -> {
+                                    for (FirebaseVisionFace face : faces) {
+                                        getContourPoints(face, FirebaseVisionFaceContour.LOWER_LIP_BOTTOM);
+                                        getContourPoints(face, FirebaseVisionFaceContour.LOWER_LIP_TOP);
+                                        getContourPoints(face, FirebaseVisionFaceContour.UPPER_LIP_BOTTOM);
+                                        getContourPoints(face, FirebaseVisionFaceContour.UPPER_LIP_TOP);                                        }
+                                })
+                        .addOnFailureListener(
+                                e -> {
+                                    // Task failed with an exception
+                                    Log.e("Erorr", Objects.requireNonNull(e.getMessage()));
+                                });
+    }
+
+    private void getContourPoints(FirebaseVisionFace face, int facialFeature) {
+        FirebaseVisionFaceContour contour = face.getContour(facialFeature);
+        List<FirebaseVisionPoint> pointList = contour.getPoints();
+    }
     /*
     =====================================
     AUXILIARY FUNCTIONS
