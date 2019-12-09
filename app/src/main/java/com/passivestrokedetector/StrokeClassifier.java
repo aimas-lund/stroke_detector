@@ -15,6 +15,7 @@ import java.util.List;
 
 import android.os.Environment;
 
+import weka.classifiers.trees.J48;
 import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -26,23 +27,37 @@ public class StrokeClassifier {
 
     private static String TAG = "Stroke Classifier";
 
-    private int numFeatures = 9;
+//    private int numFeatures = 90 * 2;
     private List<String> listFeatureLeftEye = initList("le");
     private List<String> listFeatureRightEye = initList("re");
     private List<String> listFeatureLowerLip = initList("ll");
     private List<String> listFeatureUpperLip = initList("ul");
+    private List<String> listFeatureLowerLipTop = initList("llt");
+    private List<String> listFeatureUpperLipBot = initList("llb");
+
+//    List<String> leftEB = initList("leb");
+//    List<String> leftET = initList("let");
+//    List<String> rightEB = initList("reb");
+//    List<String> rightET = initList("ret");
+//    List<String> leftEye = initList("le");
+//    List<String> rightEye = initList("re");
+    List<String> upperlt = initList("ult");
+    List<String> upperlb = initList("ulb");
+    List<String> lowerlt = initList("llt");
+    List<String> lowerlb = initList("llb");
+
     private List<List<String>> allFeatures =
             Arrays.asList(
-            listFeatureLeftEye,
-            listFeatureRightEye,
-            listFeatureLowerLip,
-            listFeatureUpperLip);
+//            leftEB, leftET, rightEB, rightET, leftEye, rightEye, upperlt, upperlb, lowerlt, lowerlb);
+                    upperlt, upperlb, lowerlt, lowerlb);
+
     private List<String> listClass = Arrays.asList("Normal", "Drooping");
     public Instances instances = createEmptyInstances();
 
     // For training
-    private NaiveBayes classifier = new NaiveBayes();
+//    private NaiveBayes classifier = new NaiveBayes();
 
+    private J48 classifier = new J48();
     // Functions
     private Instances createEmptyInstances() {
         /* Create an empty list of instances */
@@ -211,8 +226,25 @@ public class StrokeClassifier {
     private List<String> initList(String featureName) {
 
         List<String> list = new ArrayList<>();
+        int size = 9;
 
-        for (int i = 0; i < numFeatures; i++) {
+        switch (featureName) {
+            case "leb":
+            case "let":
+            case "reb":
+            case "ret":
+                size = 5;
+                break;
+            case "le":
+            case "re":
+                size = 16;
+                break;
+            case "ult":
+                size = 11;
+                break;
+        }
+        size *= 2;
+        for (int i = 0; i < size; i++) {
             list.add(featureName + i);
         }
 

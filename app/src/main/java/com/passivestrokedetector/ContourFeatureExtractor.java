@@ -26,18 +26,47 @@ public class ContourFeatureExtractor {
     }
 
     List<Double> extractAll() {
-        List<Double> leftEyeFeatures = extract(face.getContour(FirebaseVisionFaceContour.LEFT_EYE).getPoints(),
-                FacialFeature.LEFT_EYE);
-        List<Double> rightEyeFeatures = extract(face.getContour(FirebaseVisionFaceContour.RIGHT_EYE).getPoints(),
-                FacialFeature.RIGHT_EYE);
-        List<Double> lowerLipFeatures = extract(face.getContour(FirebaseVisionFaceContour.LOWER_LIP_BOTTOM).getPoints(),
-                FacialFeature.LOWER_LIP);
-        List<Double> upperLipFeatures = extract(face.getContour(FirebaseVisionFaceContour.UPPER_LIP_TOP).getPoints(),
-                FacialFeature.UPPER_LIP);
+//        List<Double> leftEyeFeatures = extract(face.getContour(FirebaseVisionFaceContour.LEFT_EYE).getPoints(),
+//                FacialFeature.LEFT_EYE);
+//        List<Double> rightEyeFeatures = extract(face.getContour(FirebaseVisionFaceContour.RIGHT_EYE).getPoints(),
+//                FacialFeature.RIGHT_EYE);
+//        List<Double> lowerLipFeatures = extract(face.getContour(FirebaseVisionFaceContour.LOWER_LIP_BOTTOM).getPoints(),
+//                FacialFeature.LOWER_LIP_BOT);
+//
+//        List<Double> lowerLipTop = extract(face.getContour(FirebaseVisionFaceContour.LOWER_LIP_TOP).getPoints(),
+//                FacialFeature.LOWER_LIP_TOP );
+//        List<Double> upperLipBot = extract(face.getContour(FirebaseVisionFaceContour.UPPER_LIP_BOTTOM).getPoints(),
+//                FacialFeature.UPPER_LIP_BOT);
+//        List<Double> upperLipFeatures = extract(face.getContour(FirebaseVisionFaceContour.UPPER_LIP_TOP).getPoints(),
+//                FacialFeature.UPPER_LIP_TOP);
+//        return flattenList(
+//                Arrays.asList(leftEyeFeatures, rightEyeFeatures, lowerLipFeatures, upperLipFeatures, lowerLipTop, upperLipBot)
+//        );
+//        List<Double> leftEB = extractContour(face.getContour(FirebaseVisionFaceContour.LEFT_EYEBROW_BOTTOM).getPoints());
+//        List<Double> leftET = extractContour(face.getContour(FirebaseVisionFaceContour.LEFT_EYEBROW_TOP).getPoints());
+//        List<Double> rightEB = extractContour(face.getContour(FirebaseVisionFaceContour.RIGHT_EYEBROW_BOTTOM).getPoints());
+//        List<Double> rightET = extractContour(face.getContour(FirebaseVisionFaceContour.RIGHT_EYEBROW_TOP).getPoints());
+//        List<Double> leftEye = extractContour(face.getContour(FirebaseVisionFaceContour.LEFT_EYE).getPoints());
+//        List<Double> rightEye = extractContour(face.getContour(FirebaseVisionFaceContour.RIGHT_EYE).getPoints());
+        List<Double> upperlt = extractContour(face.getContour(FirebaseVisionFaceContour.UPPER_LIP_TOP).getPoints());
+        List<Double> upperlb = extractContour(face.getContour(FirebaseVisionFaceContour.UPPER_LIP_BOTTOM).getPoints());
+        List<Double> lowerlt = extractContour(face.getContour(FirebaseVisionFaceContour.LOWER_LIP_TOP).getPoints());
+        List<Double> lowerlb = extractContour(face.getContour(FirebaseVisionFaceContour.LOWER_LIP_BOTTOM).getPoints());
 
         return flattenList(
-                Arrays.asList(leftEyeFeatures, rightEyeFeatures, lowerLipFeatures, upperLipFeatures)
+//                Arrays.asList(leftEB, leftET, rightEB, rightET, leftEye, rightEye, upperlt, upperlb, lowerlt, lowerlb)
+                Arrays.asList(upperlt, upperlb, lowerlt, lowerlb)
+
         );
+    }
+
+    private List<Double> extractContour(List<FirebaseVisionPoint> contours) {
+        List<Double> output = new ArrayList<>();
+        for (FirebaseVisionPoint p : contours) {
+            output.add(p.getX().doubleValue());
+            output.add(p.getY().doubleValue());
+        }
+        return output;
     }
 
     private List<Double> extract(List<FirebaseVisionPoint> contours,
@@ -93,7 +122,11 @@ public class ContourFeatureExtractor {
             i2 = 8;
         } else if (facialFeature == FacialFeature.RIGHT_EYE) {
             i2 = 8;
-        } else if (facialFeature == FacialFeature.LOWER_LIP) {
+        } else if (facialFeature == FacialFeature.LOWER_LIP_TOP) {
+            i1 = 8;
+        } else if (facialFeature == FacialFeature.LOWER_LIP_BOT) {
+            i1 = 8;
+        } else if (facialFeature == FacialFeature.UPPER_LIP_BOT) {
             i1 = 8;
         } else {
             i2 = 10;
