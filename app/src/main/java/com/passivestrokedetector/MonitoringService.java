@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -26,7 +25,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Vibrator;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
@@ -179,7 +177,7 @@ public class MonitoringService extends ForegroundService {
 //                                "Test",
 //                                "This is a test"
 //                        );
-                    FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(getResizedBitmap(bitmap, 640, 480));
+                    FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(getResizedBitmap(bitmap, 440, 320));
 
                     FirebaseVisionFaceDetector detector = FirebaseVision.getInstance().getVisionFaceDetector(options);
                     Task<List<FirebaseVisionFace>> result = detector.detectInImage(image)
@@ -190,7 +188,7 @@ public class MonitoringService extends ForegroundService {
                                                 extractor.setFace(face);
                                                 List<Double> list = extractor.extractAll();
 
-                                                Instance instance = classifier.createInstance(classifier.getAllFeaturesFlattened(), list, StateOfFace.NORMAL);
+                                                Instance instance = classifier.createInstance(classifier.getAllFeaturesFlattened(), list, StateOfFace.DROOPING);
                                                 try {
                                                     String output = classifier.predict(instance);
                                                     if (output.equals("Drooping")) {
@@ -232,7 +230,7 @@ public class MonitoringService extends ForegroundService {
                 return;
             }
             manager.openCamera(cameraID, cameraStateCallback, mBackgroundHandler);
-            imageReader = ImageReader.newInstance(480, 640, ImageFormat.JPEG, 2);
+            imageReader = ImageReader.newInstance(320, 440, ImageFormat.JPEG, 2);
             imageReader.setOnImageAvailableListener(onImageAvailableListener, mBackgroundHandler);
             Log.d(TAG, "imageReader created");
         } catch (CameraAccessException e) {
@@ -298,11 +296,11 @@ public class MonitoringService extends ForegroundService {
         startBackgroundThread();
         try {
             classifier.load("classifierModel.arff");
-            extractor = new ContourFeatureExtractor();
         } catch (Exception e) {
             e.printStackTrace();
             Log.d(classifier.getTAG(), "Failed to load classifier model");
         }
+        extractor = new ContourFeatureExtractor();
         super.onCreate();
     }
 

@@ -7,7 +7,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.PeriodicSync;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -24,9 +26,7 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
-import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
-import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 
@@ -41,8 +41,11 @@ import weka.core.Instance;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static String TAG = "MainActivity";
-    private static final int REQUEST_EXTERNAL_STORAGE_PERMISSION = 1;
-    private static final int REQUEST_CAMERA_PERMISSION = 2;
+    private String[] PERMISSIONS = {
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA
+    };
+    private static final int REQUEST_PERMISSIONS_CODE = 1;
     private StrokeClassifier classifier;
     private ContourFeatureExtractor extractor;
     private ImageView imageView;
@@ -55,22 +58,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button deleteModelBtn;
     private Boolean buttonsDisabled = false;
 
-    private String filePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString() + "/Camera/";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         // Check for permissions
-        checkCameraPermission();
-        checkStoreagePermission();
-
-        FirebaseVisionFaceDetectorOptions highSpeedOptions =
-                new FirebaseVisionFaceDetectorOptions.Builder()
-                        .setPerformanceMode(FirebaseVisionFaceDetectorOptions.FAST)
-                        .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
-                        .build();
+        if (!hasPermissions(this, PERMISSIONS)) {
+            ActivityCompat.requestPermissions(this, PERMISSIONS, REQUEST_PERMISSIONS_CODE);
+        }
 
         classifier = new StrokeClassifier();
         extractor = new ContourFeatureExtractor();
@@ -184,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 for (File file : allFiles) {
                     Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
                     FirebaseVisionImage image = FirebaseVisionImage.
-                            fromBitmap(getResizedBitmap(bitmap, 640, 480));
+                            fromBitmap(getResizedBitmap(bitmap, 1280, 720));
                     buildClassifier(image, true);
                 }
             }
@@ -225,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private void doTraining(List<Bitmap> normal, List<Bitmap> drooping) {
         for (Bitmap map : normal) {
-            map = getResizedBitmap(map, 640, 480);
+            map = getResizedBitmap(map, 440, 320);
             FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(map);
 
             // label normal
@@ -233,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         for (Bitmap map : drooping) {
-            map = getResizedBitmap(map, 640, 480);
+            map = getResizedBitmap(map, 440, 320);
             FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(map);
 
             // label drooping
@@ -299,22 +295,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
 
 
-    private void checkCameraPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
-                PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.CAMERA},
-                    REQUEST_CAMERA_PERMISSION);
+    private static boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
         }
-    }
-
-    private void checkStoreagePermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
-                PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    REQUEST_EXTERNAL_STORAGE_PERMISSION);
-        }
+        return true;
     }
 
     private void toggleButtons(Button active) {
@@ -356,78 +345,56 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private List<Bitmap> getDroopingImage() {
         List<Bitmap> list = new ArrayList<>();
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d1));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d2));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d3));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d4));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d5));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d6));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d7));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d8));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d9));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d10));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d11));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d12));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d13));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d14));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d15));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d16));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d17));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d18));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d19));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d20));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d21));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d22));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d23));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d24));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d25));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d26));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d27));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d28));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d29));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d30));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d31));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d32));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d33));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d34));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d35));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d2));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d3));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d4));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d5));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d6));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d7));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d8));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d9));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d10));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d11));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d12));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d13));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d14));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d15));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d16));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d17));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d18));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d19));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d20));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d21));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d22));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d23));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d24));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d25));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d26));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d27));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d28));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d29));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d30));
         return list;
     }
 
     private List<Bitmap> getNormalImage() {
         List<Bitmap> list = new ArrayList<>();
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n1));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n2));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n3));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n4));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n5));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n6));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n7));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n8));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n9));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n10));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n11));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n12));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n13));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n14));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n15));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n16));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n17));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n18));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n19));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n20));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n21));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n22));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n23));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n24));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n25));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n26));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n27));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n28));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n29));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n30));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n31));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n32));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n2));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n3));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n4));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n5));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n6));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n7));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n8));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n9));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n10));
+
         return list;
+    }
+
+    public StrokeClassifier getClassifier() {
+        return classifier;
     }
 }
 

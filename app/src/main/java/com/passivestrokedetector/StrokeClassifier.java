@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.util.Log;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -15,6 +14,8 @@ import java.util.List;
 
 import android.os.Environment;
 
+import weka.classifiers.functions.SMO;
+import weka.classifiers.trees.J48;
 import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -61,7 +62,7 @@ public class StrokeClassifier {
         }
         attrs.addElement(new Attribute("label", classes));
 
-        Instances instances = new Instances("modelInstances", attrs, 10000);
+        Instances instances = new Instances("modelInstances", attrs, 50);
         Attribute attr = instances.attribute("label");
         instances.setClass(attr);
 
@@ -87,33 +88,25 @@ public class StrokeClassifier {
         }
         instance.setValue(attrClass, className);
 
-        /*
-        if (faceState == StateOfFace.NORMAL) {
-            instance.setClassValue(listClass.get(0));
-        } else {
-            instance.setClassValue(listClass.get(1));
-        }
-         */
-        instance.setDataset(instances);
-
         return instance;
     }
 
     /*
     Takes whatever instance created and adds it in Instances class
     */
-    public void addToInstances(Instance instance) {
+    void addToInstances(Instance instance) {
         Attribute classAttr = instances.attribute("label");
         instances.setClass(classAttr);
         instances.add(instance);
     }
 
-    public void train() throws Exception {
+    void train() throws Exception {
         classifier.buildClassifier(instances);
         Log.d(TAG, "Model trained");
     }
 
-    public String predict(Instance instance) throws Exception {
+    String predict(Instance instance) throws Exception {
+        instance.setDataset(instances);
         double result = classifier.classifyInstance(instance);
         String output = instances.classAttribute().value((int) result);
 
@@ -124,7 +117,7 @@ public class StrokeClassifier {
     /*
     Fetches classifier model
      */
-    public void save(String fileName) throws IOException {
+    void save(String fileName) throws IOException {
         ArffSaver saver = new ArffSaver();
 
         saver.setInstances(instances);
@@ -142,8 +135,7 @@ public class StrokeClassifier {
         saver.writeBatch();
     }
 
-    public void load(String fileName) throws Exception {
-        //String dirPath = "/sdcard/classifierModel";
+    void load(String fileName) throws Exception {
         @SuppressLint("SdCardPath")
         String dirPath = "/sdcard/weka/";
         String filePath = dirPath + fileName;
@@ -155,12 +147,13 @@ public class StrokeClassifier {
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         Instances data = new Instances(reader);
 
-        if (data.classIndex() == -1)
+        if (data.classIndex() == -1) {
             data.setClassIndex(data.numAttributes() - 1);
+        }
         train();
     }
 
-    public void delete(String fileName) {
+    void delete(String fileName) {
 
         if (checkModelAvailable(fileName)) {
             String dirPath = Environment.getExternalStorageDirectory().getPath();
@@ -174,7 +167,7 @@ public class StrokeClassifier {
         }
     }
 
-    public Boolean checkModelAvailable(String fileName) {
+    Boolean checkModelAvailable(String fileName) {
         @SuppressLint("SdCardPath")
         String dirPath = "/sdcard/weka/";
         String filePath = dirPath + fileName;
@@ -193,11 +186,11 @@ public class StrokeClassifier {
         return allFeatures;
     }
 
-    public List<String> getAllFeaturesFlattened() {
+    List<String> getAllFeaturesFlattened() {
         return flattenList(allFeatures);
     }
 
-    public String getTAG() {
+    String getTAG() {
         return TAG;
     }
 
@@ -223,7 +216,7 @@ public class StrokeClassifier {
         switch (className) {
             case NORMAL:    return listClass.get(0);
             case DROOPING:  return listClass.get(1);
-            default:        return "";
+            default:        throw new IllegalStateException();
         }
     }
 
