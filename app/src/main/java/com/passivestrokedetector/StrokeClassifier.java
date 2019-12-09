@@ -110,7 +110,7 @@ public class StrokeClassifier {
             instance.setClassValue(listClass.get(1));
         }
          */
-        instance.setDataset(instances);
+//        instance.setDataset(instances);
 
         return instance;
     }

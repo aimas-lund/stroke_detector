@@ -55,7 +55,7 @@ import weka.core.Instance;
 public class MonitoringService extends ForegroundService {
 
     protected static final int CAMERA_CALIBRATION_DELAY = 500;  // calibration delay to give proper picture brightness
-    protected int IMAGE_CAPTURE_PAUSE = 7000;                   // delay after each successful picture extracted
+    protected int IMAGE_CAPTURE_PAUSE = 25000;                   // delay after each successful picture extracted
     protected static final String TAG = "Camera2 Service";
     protected static final int CAMERA_CHOICE = CameraCharacteristics.LENS_FACING_FRONT;
     protected static long cameraCaptureStartTime;
@@ -210,6 +210,8 @@ public class MonitoringService extends ForegroundService {
                                     });
                     try {                                           // Wait to take another picture
                         Thread.sleep(IMAGE_CAPTURE_PAUSE);
+                        // Fake message
+                        sendNotification("IMMEDIATE ACTION REQUIRED", "Stroke has possibly been detected. Please look to get help or immediate assistance");
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -384,10 +386,12 @@ public class MonitoringService extends ForegroundService {
 
     private void sendNotification(String subject, String body) {
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        Notification notify = new NotificationCompat.Builder(this, CHANNEL_ID)
+        Notification notify = new NotificationCompat.Builder(this, "ForegroundServiceChannel")
                 .setContentTitle(subject)
                 .setContentText(body)
                 .setSmallIcon(R.mipmap.ic_launcher)
+                .setDefaults(Notification.DEFAULT_ALL)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .build();
         notify.flags |= Notification.FLAG_AUTO_CANCEL;
         manager.notify(0, notify);
@@ -395,7 +399,6 @@ public class MonitoringService extends ForegroundService {
         // Get instance of Vibrator from current Context
         Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-        // Vibrate for 300 milliseconds
-        v.vibrate(1000);
+        v.vibrate(4000);
     }
 }
