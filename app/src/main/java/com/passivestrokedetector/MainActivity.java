@@ -1,6 +1,5 @@
 package com.passivestrokedetector;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -9,14 +8,12 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.PeriodicSync;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -27,13 +24,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 
-import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
-import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 
-import java.io.File;
 import java.util.ArrayList;
 
 import java.util.Arrays;
@@ -170,35 +164,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void stopMonitoringService() {
         Intent serviceIntent = new Intent(this, MonitoringService.class);
         stopService(serviceIntent);
-    }
-
-    private void loopPhotosThroughDirs(String dirsPath) throws Exception {
-        try {
-            File folder = new File(dirsPath);
-            folder.mkdirs();
-            File[] allFiles = folder.listFiles((dir, name) -> (
-                    name.endsWith(".jpg") ||
-                            name.endsWith(".jpeg") ||
-                            name.endsWith(".png")));
-            if (allFiles != null) {
-                for (File file : allFiles) {
-                    Bitmap bitmap = BitmapFactory.decodeFile(file.getPath());
-                    FirebaseVisionImage image = FirebaseVisionImage.
-                            fromBitmap(getResizedBitmap(bitmap, 1280, 720));
-                    buildClassifier(image, true);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            classifier.train();
-            classifier.save("classifierModel.arff");
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.d(classifier.getTAG(), "Unable to train model");
-        }
-
     }
 
     private Bitmap getResizedBitmap(Bitmap bm, int newHeight, int newWidth) {
@@ -397,10 +362,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n10));
 
         return list;
-    }
-
-    public StrokeClassifier getClassifier() {
-        return classifier;
     }
 }
 
