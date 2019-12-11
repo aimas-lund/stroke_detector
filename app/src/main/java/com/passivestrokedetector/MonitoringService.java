@@ -41,12 +41,17 @@ import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 import weka.core.Instance;
+import weka.core.Instances;
 
 
 @SuppressLint("Registered")
@@ -69,7 +74,7 @@ public class MonitoringService extends ForegroundService {
     private static final int ORIENTATION_90 = 3;
     private static final int ORIENTATION_270 = 1;
 
-    private ContourFeatureExtractor extractor;
+    private ContourFeatureExtractor extractor = new ContourFeatureExtractor();
     private FirebaseVisionFaceDetectorOptions options =
             new FirebaseVisionFaceDetectorOptions.Builder()
                     .setClassificationMode(FirebaseVisionFaceDetectorOptions.ACCURATE)
@@ -264,6 +269,19 @@ public class MonitoringService extends ForegroundService {
         }
     }
 
+    public Instances getInstances() throws IOException {
+        BufferedReader bReader;
+        bReader = new BufferedReader(
+                new InputStreamReader(ISR(R.raw.data)));
+        Instances data = new Instances(bReader);
+        return data;
+    }
+
+    public InputStream ISR(int resourceId) {
+        InputStream iStream = getBaseContext().getResources().openRawResource(resourceId);
+        return iStream;
+    }
+
     /*
     When the CameraDevice class is ready, a CaptureSession should be started
      */
@@ -295,12 +313,11 @@ public class MonitoringService extends ForegroundService {
         Log.d(TAG, "onCreate service");
         startBackgroundThread();
         try {
-//            classifier.load("classifierModel.arff");
+            classifier.load(getInstances());
         } catch (Exception e) {
             e.printStackTrace();
             Log.d(classifier.getTAG(), "Failed to load classifier model");
         }
-        extractor = new ContourFeatureExtractor();
         super.onCreate();
     }
 
@@ -353,14 +370,6 @@ public class MonitoringService extends ForegroundService {
         buffer.get(bytes);
 
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
-    }
-
-    public Activity getActivity(Context context) {
-        if (context == null) return null;
-        if (context instanceof Activity) return (Activity) context;
-        if (context instanceof ContextWrapper)
-            return getActivity(((ContextWrapper) context).getBaseContext());
-        return null;
     }
 
     private Bitmap getResizedBitmap(Bitmap bm, int newHeight, int newWidth) {

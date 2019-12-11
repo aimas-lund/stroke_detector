@@ -103,6 +103,10 @@ public class StrokeClassifier {
         Log.d(TAG, "Model trained");
     }
 
+    void train(Instances instances) throws Exception {
+        classifier.buildClassifier(instances);
+    }
+
     String predict(Instance instance) throws Exception {
         instance.setDataset(instances);
         double result = classifier.classifyInstance(instance);
@@ -153,7 +157,7 @@ public class StrokeClassifier {
     void load(Instances data) throws Exception {
         if (data.classIndex() == -1)
             data.setClassIndex(data.numAttributes() - 1);
-        train();
+        train(data);
     }
 
     void delete(String fileName) {
