@@ -3,11 +3,12 @@ package com.passivestrokedetector;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -23,7 +24,7 @@ import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.provider.MediaStore;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
@@ -31,18 +32,28 @@ import android.view.WindowManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.ml.vision.FirebaseVision;
+import com.google.firebase.ml.vision.common.FirebaseVisionImage;
+import com.google.firebase.ml.vision.face.FirebaseVisionFace;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
+import weka.core.Instance;
 
 
 @SuppressLint("Registered")
 public class MonitoringService extends ForegroundService {
 
     protected static final int CAMERA_CALIBRATION_DELAY = 500;  // calibration delay to give proper picture brightness
-    protected int IMAGE_CAPTURE_PAUSE = 5000;                   // delay after each successful picture extracted
+    protected int IMAGE_CAPTURE_PAUSE = 7000;                   // delay after each successful picture extracted
     protected static final String TAG = "Camera2 Service";
     protected static final int CAMERA_CHOICE = CameraCharacteristics.LENS_FACING_FRONT;
     protected static long cameraCaptureStartTime;
@@ -57,6 +68,17 @@ public class MonitoringService extends ForegroundService {
     private static final int ORIENTATION_0 = 0;
     private static final int ORIENTATION_90 = 3;
     private static final int ORIENTATION_270 = 1;
+
+    private ContourFeatureExtractor extractor;
+    private FirebaseVisionFaceDetectorOptions options =
+            new FirebaseVisionFaceDetectorOptions.Builder()
+                    .setClassificationMode(FirebaseVisionFaceDetectorOptions.ACCURATE)
+                    .setContourMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
+                    .setLandmarkMode(FirebaseVisionFaceDetectorOptions.NO_LANDMARKS)
+                    .setClassificationMode(FirebaseVisionFaceDetectorOptions.NO_CLASSIFICATIONS)
+                    .setMinFaceSize(0.15f)
+                    .enableTracking()
+                    .build();
 
     protected CameraDevice.StateCallback cameraStateCallback = new CameraDevice.StateCallback() {
 
@@ -123,48 +145,72 @@ public class MonitoringService extends ForegroundService {
             Log.d(TAG, "onImageAvailable");
             Image img = reader.acquireLatestImage();
             if (img != null) {
-                    if (System.currentTimeMillis () > cameraCaptureStartTime + CAMERA_CALIBRATION_DELAY) {
-                        Log.d(TAG,"Image received");
-                        Bitmap bitmap = imageToBitmap(img);             // Transform image object into bitmap
+                if (System.currentTimeMillis() > cameraCaptureStartTime + CAMERA_CALIBRATION_DELAY) {
+                    Log.d(TAG, "Image received");
+                    Bitmap bitmap = imageToBitmap(img);             // Transform image object into bitmap
 
-                        float degrees;//rotation degree
-                        Display display = ((WindowManager)
-                                getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-                        int screenOrientation = display.getRotation();
+                    float degrees;//rotation degree
+                    Display display = ((WindowManager)
+                            getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+                    int screenOrientation = display.getRotation();
 
-                        switch (screenOrientation)
-                        {
-                            default:
-                            case ORIENTATION_0:
-                                degrees = 270;
-                                break;
-                            case ORIENTATION_90: // Landscape right
-                                degrees = 180;
-                                break;
-                            case ORIENTATION_270: // Landscape left
-                                degrees = 360;
-                                break;
-                        }
-
-                        Matrix matrix = new Matrix();
-                        matrix.setRotate(degrees);
-                        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-
-                        MediaStore.Images.Media.insertImage(
-                                getContentResolver(),
-                                bitmap,
-                                "Test",
-                                "This is a test"
-                        );
-
-                        //TODO: do some analysis on the image
-
-                        try {                                           // Wait to take another picture
-                            Thread.sleep(IMAGE_CAPTURE_PAUSE);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                    switch (screenOrientation) {
+                        default:
+                        case ORIENTATION_0:
+                            degrees = 270;
+                            break;
+                        case ORIENTATION_90: // Landscape right
+                            degrees = 180;
+                            break;
+                        case ORIENTATION_270: // Landscape left
+                            degrees = 360;
+                            break;
                     }
+
+                    Matrix matrix = new Matrix();
+                    matrix.setRotate(degrees);
+                    bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+
+//                        MediaStore.Images.Media.insertImage(
+//                                getContentResolver(),
+//                                bitmap,
+//                                "Test",
+//                                "This is a test"
+//                        );
+                    FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(getResizedBitmap(bitmap, 440, 320));
+
+                    FirebaseVisionFaceDetector detector = FirebaseVision.getInstance().getVisionFaceDetector(options);
+                    Task<List<FirebaseVisionFace>> result = detector.detectInImage(image)
+                            .addOnSuccessListener(
+                                    faces -> {
+                                        for (FirebaseVisionFace face : faces) {
+                                            if (face != null) {
+                                                extractor.setFace(face);
+                                                List<Double> list = extractor.extractAll();
+
+                                                Instance instance = classifier.createInstance(classifier.getAllFeaturesFlattened(), list, StateOfFace.DROOPING);
+                                                try {
+                                                    String output = classifier.predict(instance);
+                                                    if (output.equals("Drooping")) {
+                                                        sendNotification("IMMEDIATE ACTION REQUIRED", "Stroke has possibly been detected");
+                                                    }
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }
+                                    })
+                            .addOnFailureListener(
+                                    e -> {
+                                        // Task failed with an exception
+                                        Log.e("Error", Objects.requireNonNull(e.getMessage()));
+                                    });
+                    try {                                           // Wait to take another picture
+                        Thread.sleep(IMAGE_CAPTURE_PAUSE);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
                 img.close();
             }
         }
@@ -184,10 +230,10 @@ public class MonitoringService extends ForegroundService {
                 return;
             }
             manager.openCamera(cameraID, cameraStateCallback, mBackgroundHandler);
-            imageReader = ImageReader.newInstance(480, 640, ImageFormat.JPEG, 2);
+            imageReader = ImageReader.newInstance(320, 440, ImageFormat.JPEG, 2);
             imageReader.setOnImageAvailableListener(onImageAvailableListener, mBackgroundHandler);
             Log.d(TAG, "imageReader created");
-        } catch (CameraAccessException e){
+        } catch (CameraAccessException e) {
             Log.e(TAG, Objects.requireNonNull(e.getMessage()));
         }
     }
@@ -201,7 +247,7 @@ public class MonitoringService extends ForegroundService {
                     return cameraId;
                 }
             }
-        } catch (CameraAccessException e){
+        } catch (CameraAccessException e) {
             e.printStackTrace();
         }
         return null;
@@ -221,12 +267,11 @@ public class MonitoringService extends ForegroundService {
     /*
     When the CameraDevice class is ready, a CaptureSession should be started
      */
-    public void actOnReadyCameraDevice()
-    {
+    public void actOnReadyCameraDevice() {
         try {
             imageReader.getSurface();
             cameraDevice.createCaptureSession(Arrays.asList(imageReader.getSurface()), mStateCallback, mBackgroundHandler);
-        } catch (CameraAccessException e){
+        } catch (CameraAccessException e) {
             Log.e(TAG, Objects.requireNonNull(e.getMessage()));
         }
     }
@@ -247,7 +292,7 @@ public class MonitoringService extends ForegroundService {
      */
     @Override
     public void onCreate() {
-        Log.d(TAG,"onCreate service");
+        Log.d(TAG, "onCreate service");
         startBackgroundThread();
         try {
             classifier.load("classifierModel.arff");
@@ -255,6 +300,7 @@ public class MonitoringService extends ForegroundService {
             e.printStackTrace();
             Log.d(classifier.getTAG(), "Failed to load classifier model");
         }
+        extractor = new ContourFeatureExtractor();
         super.onCreate();
     }
 
@@ -266,7 +312,7 @@ public class MonitoringService extends ForegroundService {
         try {
             captureSession.abortCaptures();
             stopBackgroundThread();
-        } catch (CameraAccessException e){
+        } catch (CameraAccessException e) {
             Log.e(TAG, Objects.requireNonNull(e.getMessage()));
         }
         captureSession.close();
@@ -306,13 +352,47 @@ public class MonitoringService extends ForegroundService {
         byte[] bytes = new byte[buffer.remaining()];
         buffer.get(bytes);
 
-        return BitmapFactory.decodeByteArray(bytes,0,bytes.length,null);
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
     }
 
     public Activity getActivity(Context context) {
         if (context == null) return null;
         if (context instanceof Activity) return (Activity) context;
-        if (context instanceof ContextWrapper) return getActivity(((ContextWrapper)context).getBaseContext());
+        if (context instanceof ContextWrapper)
+            return getActivity(((ContextWrapper) context).getBaseContext());
         return null;
+    }
+
+    private Bitmap getResizedBitmap(Bitmap bm, int newHeight, int newWidth) {
+        int width = bm.getWidth();
+        int height = bm.getHeight();
+        float scaleWidth = ((float) newWidth) / width;
+        float scaleHeight = ((float) newHeight) / height;
+
+        // create a matrix for the manipulation
+        Matrix matrix = new Matrix();
+
+        // resize the bit map
+        matrix.postScale(scaleWidth, scaleHeight);
+
+        // recreate the new Bitmap
+        return Bitmap.createBitmap(bm, 0, 0, width, height, matrix, false);
+    }
+
+    private void sendNotification(String subject, String body) {
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        Notification notify = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle(subject)
+                .setContentText(body)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .build();
+        notify.flags |= Notification.FLAG_AUTO_CANCEL;
+        manager.notify(0, notify);
+
+        // Get instance of Vibrator from current Context
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+        // Vibrate for 300 milliseconds
+        v.vibrate(1000);
     }
 }

@@ -20,7 +20,10 @@ public class ContourFeatureExtractor {
     ContourFeatureExtractor(FirebaseVisionFace face) {
         this.face = face;
     }
-    ContourFeatureExtractor() { this.face = null; }
+
+    ContourFeatureExtractor() {
+        this.face = null;
+    }
 
     List<Double> extractAll() {
         List<Double> leftEyeFeatures = extract(face.getContour(FirebaseVisionFaceContour.LEFT_EYE).getPoints(),
@@ -38,7 +41,7 @@ public class ContourFeatureExtractor {
     }
 
     private List<Double> extract(List<FirebaseVisionPoint> contours,
-                                FacialFeature facialFeature) {
+                                 FacialFeature facialFeature) {
 
         List<Double> pointsX = new ArrayList<>();
         List<Double> pointsY = new ArrayList<>();
@@ -65,20 +68,20 @@ public class ContourFeatureExtractor {
     private Double averageOf(List<Double> arr) {
         Double sum = 0.0;
 
-        for (int i = 0; i<arr.size(); i++) {
+        for (int i = 0; i < arr.size(); i++) {
             sum += arr.get(i);
         }
-        return sum/arr.size();
+        return sum / arr.size();
     }
 
-    private Double varianceOf(List<Double> arr){
+    private Double varianceOf(List<Double> arr) {
         double x = 0.0;
         Double mean = averageOf(arr);
 
-        for (int i = 0; i<arr.size(); i++) {
+        for (int i = 0; i < arr.size(); i++) {
             x += Math.pow((arr.get(i) - mean), 2);
         }
-        return x/arr.size();
+        return x / arr.size();
     }
 
     private Double slopeOf(List<FirebaseVisionPoint> points, FacialFeature facialFeature) {
@@ -99,7 +102,7 @@ public class ContourFeatureExtractor {
         FirebaseVisionPoint point1 = points.get(i1);
         FirebaseVisionPoint point2 = points.get(i2);
 
-        return (double) Math.abs((point2.getY()-point1.getY()) / (point2.getX()-point1.getX()));
+        return (double) Math.abs((point2.getY() - point1.getY()) / (point2.getX() - point1.getX()));
     }
 
     private <T> List<T> flattenList(List<List<T>> nested) {

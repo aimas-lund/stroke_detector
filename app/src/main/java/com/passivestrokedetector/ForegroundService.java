@@ -52,6 +52,7 @@ public class ForegroundService extends Service {
             manager.createNotificationChannel(serviceChannel);
         }
     }
+
     private void startForeground(Intent intent) {
         String input = intent.getStringExtra("inputExtra");
         createNotificationChannel();
@@ -70,7 +71,7 @@ public class ForegroundService extends Service {
     }
 
     private void sendNotification(String subject, String body) {
-        NotificationManager manager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         Notification notify = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(subject)
                 .setContentText(body)

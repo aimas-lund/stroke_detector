@@ -1,5 +1,6 @@
 package com.passivestrokedetector;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -13,6 +14,8 @@ import java.util.List;
 
 import android.os.Environment;
 
+import weka.classifiers.functions.SMO;
+import weka.classifiers.trees.J48;
 import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -59,7 +62,11 @@ public class StrokeClassifier {
         }
         attrs.addElement(new Attribute("label", classes));
 
-        return new Instances("modelInstances", attrs, 10000);
+        Instances instances = new Instances("modelInstances", attrs, 50);
+        Attribute attr = instances.attribute("label");
+        instances.setClass(attr);
+
+        return instances;
     }
 
     /*
@@ -73,7 +80,7 @@ public class StrokeClassifier {
         String className = className(faceState);
 
         Attribute attrClass = instances.attribute("label");
-        Instance instance = new Instance((numFeatures + 1)*allFeatures.size());
+        Instance instance = new Instance(attrs.size() + 1);
 
         for (int j = 0; j < attrs.size(); j++) {
             Attribute attrInstance = instances.attribute(attrs.get(j));
@@ -87,19 +94,19 @@ public class StrokeClassifier {
     /*
     Takes whatever instance created and adds it in Instances class
     */
-    public void addToInstances(Instance instance) {
-
-        Attribute attrClass = instances.attribute("label");
-        instances.setClass(attrClass);
+    void addToInstances(Instance instance) {
+        Attribute classAttr = instances.attribute("label");
+        instances.setClass(classAttr);
         instances.add(instance);
     }
 
-    public void train() throws Exception {
+    void train() throws Exception {
         classifier.buildClassifier(instances);
         Log.d(TAG, "Model trained");
     }
 
-    public String predict(Instance instance) throws Exception {
+    String predict(Instance instance) throws Exception {
+        instance.setDataset(instances);
         double result = classifier.classifyInstance(instance);
         String output = instances.classAttribute().value((int) result);
 
@@ -110,12 +117,13 @@ public class StrokeClassifier {
     /*
     Fetches classifier model
      */
-    public void save(String fileName) throws IOException {
+    void save(String fileName) throws IOException {
         ArffSaver saver = new ArffSaver();
 
         saver.setInstances(instances);
 
-        String dirPath = Environment.getExternalStorageDirectory().getPath();
+        @SuppressLint("SdCardPath")
+        String dirPath = "/sdcard/weka/";
         String filePath = dirPath + fileName;
 
         File dirFile = new File(dirPath);
@@ -127,9 +135,9 @@ public class StrokeClassifier {
         saver.writeBatch();
     }
 
-    public void load(String fileName) throws Exception {
-        //String dirPath = "/sdcard/classifierModel";
-        String dirPath = Environment.getExternalStorageDirectory().getPath();
+    void load(String fileName) throws Exception {
+        @SuppressLint("SdCardPath")
+        String dirPath = "/sdcard/weka/";
         String filePath = dirPath + fileName;
 
         if (!new File(filePath).exists()) {
@@ -139,12 +147,13 @@ public class StrokeClassifier {
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         Instances data = new Instances(reader);
 
-        if (data.classIndex() == -1)
+        if (data.classIndex() == -1) {
             data.setClassIndex(data.numAttributes() - 1);
+        }
         train();
     }
 
-    public void delete(String fileName) {
+    void delete(String fileName) {
 
         if (checkModelAvailable(fileName)) {
             String dirPath = Environment.getExternalStorageDirectory().getPath();
@@ -158,8 +167,9 @@ public class StrokeClassifier {
         }
     }
 
-    public Boolean checkModelAvailable(String fileName) {
-        String dirPath = Environment.getExternalStorageDirectory().getPath();
+    Boolean checkModelAvailable(String fileName) {
+        @SuppressLint("SdCardPath")
+        String dirPath = "/sdcard/weka/";
         String filePath = dirPath + fileName;
 
         return new File(filePath).exists();
@@ -168,6 +178,7 @@ public class StrokeClassifier {
     private <T> List<T> flattenList(List<List<T>> nested) {
         List<T> output = new ArrayList<>();
         nested.forEach(output::addAll);
+
         return output;
     }
 
@@ -175,11 +186,11 @@ public class StrokeClassifier {
         return allFeatures;
     }
 
-    public List<String> getAllFeaturesFlattened() {
+    List<String> getAllFeaturesFlattened() {
         return flattenList(allFeatures);
     }
 
-    public String getTAG() {
+    String getTAG() {
         return TAG;
     }
 
@@ -205,8 +216,11 @@ public class StrokeClassifier {
         switch (className) {
             case NORMAL:    return listClass.get(0);
             case DROOPING:  return listClass.get(1);
-            default:        return "";
+            default:        throw new IllegalStateException();
         }
     }
 
+    public Instances getInstances() {
+        return instances;
+    }
 }
