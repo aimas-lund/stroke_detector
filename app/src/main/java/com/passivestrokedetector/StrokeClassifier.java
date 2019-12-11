@@ -133,21 +133,26 @@ public class StrokeClassifier {
         saver.writeBatch();
     }
 
-    void load(String fileName) throws Exception {
-        @SuppressLint("SdCardPath")
-        String dirPath = "/sdcard/weka/";
-        String filePath = dirPath + fileName;
-
-        if (!new File(filePath).exists()) {
-            throw new FileNotFoundException(fileName + " does not exist");
-        }
-
-        BufferedReader reader = new BufferedReader(new FileReader(filePath));
-        Instances data = new Instances(reader);
-
-        if (data.classIndex() == -1) {
+//    void load(String fileName) throws Exception {
+//        @SuppressLint("SdCardPath")
+//        String dirPath = "/sdcard/weka/";
+//        String filePath = dirPath + fileName;
+//
+//        if (!new File(filePath).exists()) {
+//            throw new FileNotFoundException(fileName + " does not exist");
+//        }
+//
+//        BufferedReader reader = new BufferedReader(new FileReader(filePath));
+//        Instances data = new Instances(reader);
+//
+//        if (data.classIndex() == -1) {
+//            data.setClassIndex(data.numAttributes() - 1);
+//        }
+//        train();
+//    }
+    void load(Instances data) throws Exception {
+        if (data.classIndex() == -1)
             data.setClassIndex(data.numAttributes() - 1);
-        }
         train();
     }
 

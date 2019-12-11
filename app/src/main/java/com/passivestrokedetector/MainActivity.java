@@ -28,6 +28,10 @@ import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import java.util.Arrays;
@@ -35,6 +39,7 @@ import java.util.List;
 import java.util.Objects;
 
 import weka.core.Instance;
+import weka.core.Instances;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -117,7 +122,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.buttonLoadModel: {
                 toggleAllButtons();
                 try {
-                    classifier.load("classifierModel.arff");
+//                    classifier.load("classifierModel.arff");
+                    classifier.load(getInstances());
                     Toast.makeText(this, "Model loaded successfully", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model loaded successfully");
                 } catch (Exception e) {
@@ -135,6 +141,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     }
+
+    public Instances getInstances() throws IOException {
+        BufferedReader bReader;
+        bReader = new BufferedReader(
+                new InputStreamReader(ISR(R.raw.data)));
+        Instances data = new Instances(bReader);
+        return data;
+    }
+
+    public InputStream ISR(int resourceId) {
+        InputStream iStream = getBaseContext().getResources().openRawResource(resourceId);
+        return iStream;
+    }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -318,7 +338,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d1));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d2));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d3));
-        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d4));
+//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d4));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d5));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d6));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d7));
