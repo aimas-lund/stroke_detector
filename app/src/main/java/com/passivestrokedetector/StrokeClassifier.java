@@ -1,5 +1,6 @@
 package com.passivestrokedetector;
 
+import android.content.Context;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -7,11 +8,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import android.os.Environment;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import weka.core.FastVector;
 import weka.core.Instance;
@@ -19,6 +24,7 @@ import weka.core.Instances;
 import weka.core.Attribute;
 import weka.classifiers.bayes.NaiveBayes;
 import weka.core.converters.ArffSaver;
+import weka.gui.beans.InstanceStreamToBatchMakerBeanInfo;
 
 public class StrokeClassifier {
 
@@ -127,17 +133,33 @@ public class StrokeClassifier {
         saver.writeBatch();
     }
 
-    public void load(String fileName) throws Exception {
+    public void load(Instances data) throws Exception {
         //String dirPath = "/sdcard/classifierModel";
-        String dirPath = Environment.getExternalStorageDirectory().getPath();
-        String filePath = dirPath + fileName;
+//        String dirPath = Environment.getExternalStorageDirectory().getPath();
+//        String filePath = dirPath + fileName;
+//
+//        if (!new File(filePath).exists()) {
+//            throw new FileNotFoundException(fileName + " does not exist");
+//        }
+//
+//        BufferedReader reader = new BufferedReader(new FileReader(filePath));
+//        Instances data = new Instances(reader);
+//
+//        if (data.classIndex() == -1)
+//            data.setClassIndex(data.numAttributes() - 1);
+//        train();
 
-        if (!new File(filePath).exists()) {
-            throw new FileNotFoundException(fileName + " does not exist");
-        }
-
-        BufferedReader reader = new BufferedReader(new FileReader(filePath));
-        Instances data = new Instances(reader);
+//        InputStream ins = getResources().openRawResource(
+//                getResources().getIdentifier(fileName,
+////                        "raw", getPackageName()));
+//        BufferedReader bReader;
+//        bReader = new BufferedReader(
+//                new InputStreamReader(ISR(R.raw.data)));
+////
+////        InputStreamReader inputReader = new InputStreamReader(ins);
+////
+////        BufferedReader reader = new BufferedReader(inputReader);
+//        Instances data = new Instances(bReader);
 
         if (data.classIndex() == -1)
             data.setClassIndex(data.numAttributes() - 1);

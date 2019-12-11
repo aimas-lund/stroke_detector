@@ -31,12 +31,17 @@ import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceLandmark;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 import weka.core.Instance;
+import weka.core.Instances;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -122,12 +127,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.buttonLoadModel: {
                 toggleAllButtons();
                 try {
-                    classifier.load("classifierModel.arff");
+//                    getInstances();
+//                    classifier.load("data.arff");
+                    classifier.load(getInstances());
                     Toast.makeText(this, "Model loaded successfully", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model loaded successfully");
                 } catch (Exception e) {
                     Toast.makeText(this, "Model could not be found", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Model could not be found");
+                    e.printStackTrace();
                 }
                 toggleAllButtons();
                 break;
@@ -141,6 +149,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    public Instances getInstances() throws IOException {
+        BufferedReader bReader;
+        bReader = new BufferedReader(
+                    new InputStreamReader(ISR(R.raw.data)));
+        Instances data = new Instances(bReader);
+        return data;
+    }
+
+    public InputStream ISR(int resourceId) {
+        InputStream iStream = getBaseContext().getResources().openRawResource(resourceId);
+        return iStream;
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -294,6 +314,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         FirebaseVisionFaceContour contour = face.getContour(facialFeature);
         List<FirebaseVisionPoint> pointList = contour.getPoints();
     }
+
     /*
     =====================================
     AUXILIARY FUNCTIONS

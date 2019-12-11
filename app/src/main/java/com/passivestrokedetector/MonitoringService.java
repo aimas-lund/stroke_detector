@@ -250,7 +250,7 @@ public class MonitoringService extends ForegroundService {
         Log.d(TAG,"onCreate service");
         startBackgroundThread();
         try {
-            classifier.load("classifierModel.arff");
+//            classifier.load("classifierModel.arff");
         } catch (Exception e) {
             e.printStackTrace();
             Log.d(classifier.getTAG(), "Failed to load classifier model");
