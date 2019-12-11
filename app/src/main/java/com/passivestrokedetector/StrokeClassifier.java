@@ -14,8 +14,6 @@ import java.util.List;
 
 import android.os.Environment;
 
-import weka.classifiers.functions.SMO;
-import weka.classifiers.trees.J48;
 import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
