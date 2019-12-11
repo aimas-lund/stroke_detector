@@ -178,7 +178,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Toast.makeText(this, "No trained model available", Toast.LENGTH_SHORT).show();
             Log.d(TAG, "No trained model available");
         }
-
     }
 
     private void stopMonitoringService() {
@@ -338,7 +337,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d1));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d2));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d3));
-//        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d4));
+        list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d4));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d5));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d6));
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.d7));
@@ -382,6 +381,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         list.add(BitmapFactory.decodeResource(this.getResources(), R.mipmap.n10));
 
         return list;
+    }
+
+    public StrokeClassifier getClassifier() {
+        return classifier;
     }
 }
 
