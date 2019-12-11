@@ -26,12 +26,16 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
+
+import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 
 import java.io.File;
 import java.util.ArrayList;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -228,6 +232,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             buildClassifier(image, false);
         }
 
+
         for (Bitmap map : drooping) {
             map = getResizedBitmap(map, 440, 320);
             FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(map);
@@ -246,6 +251,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void buildClassifier(FirebaseVisionImage image, boolean isDrooping) {
+
         FirebaseVisionFaceDetectorOptions options =
                 new FirebaseVisionFaceDetectorOptions.Builder()
                         .setClassificationMode(FirebaseVisionFaceDetectorOptions.ACCURATE)
